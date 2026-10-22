@@ -1,0 +1,2092 @@
+{
+  "meta": {
+    "system": "净源智研 · 固定污染源企业画像与 AI 辅助研判平台",
+    "repo": "fixed-source-platform",
+    "scope": "当前状态（current state）",
+    "levels": "L1 系统上下文 + L2 容器与模块 + 关键闭环 + 数据资产",
+    "generatedAt": "2026-10-22",
+    "audience": "毕业设计答辩、开发交接、后续架构演进",
+    "evidencePolicy": "节点与关系均标注 sourceRefs 与置信度；同进程模拟、推断和未知显式标记。",
+    "confidence": {
+      "high": "代码、配置、Schema 或运行清单直接支持",
+      "medium": "多处间接信号一致，或来自项目 README 的演示数据口径",
+      "low": "由命名、目录或业务惯例推断",
+      "unknown": "尚未验证，需要通过运行或真机确认"
+    },
+    "stats": {
+      "javaFiles": 44,
+      "controllers": 22,
+      "services": 13,
+      "tables": 25,
+      "pcRoutes": 15,
+      "mobileRoutes": 2,
+      "h2Tables": 25
+    }
+  },
+  "views": [
+    {
+      "id": "context",
+      "nav": "系统上下文",
+      "level": "L1",
+      "title": "谁在使用，系统与谁交换数据",
+      "caption": "四类业务角色通过 PC、H5、Android 使用平台；平台从模拟源取数，向模拟国家数据共享平台输出基础数据，并检索本地法规片段支撑研判。",
+      "width": 1680,
+      "height": 940,
+      "boundaries": [
+        {
+          "id": "system.platform",
+          "kind": "boundary",
+          "title": "净源智研平台",
+          "subtitle": "固定污染源企业画像与 AI 辅助研判系统",
+          "badge": "当前状态 · 单机原型",
+          "x": 430,
+          "y": 110,
+          "w": 700,
+          "h": 610,
+          "tone": "platform",
+          "summary": "当前原型的系统边界：一个 Vue 3 单页应用（PC + 移动 H5）、一个 Spring Boot 后端、一个 H2 文件数据库和本地上传目录。国家数据共享平台与模拟数据源在本原型中与业务后端同进程部署，但按逻辑边界单独建模。",
+          "items": [
+            "PC 工作台覆盖大屏、台账、事件、任务、采集、监测、规则、回测、报告与数据共享页面",
+            "移动 H5 与 PC 共用同一构建产物，Android 为独立的 Kotlin 原生端",
+            "业务后端同时承载模拟数据源、国家数据共享平台模拟模块与业务研判链路"
+          ],
+          "evidence": [
+            "README.md:9-14",
+            "README.md:308-312",
+            "docker-compose.yml:1-38",
+            "frontend/src/router.js:6-44"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "panels": [
+        {
+          "id": "panel.core",
+          "kind": "panel",
+          "title": "平台核心能力",
+          "x": 460,
+          "y": 290,
+          "w": 640,
+          "h": 260,
+          "footer": [
+            "同一个 Spring Boot 进程 · H2 文件库（25 张表） · 本地文件上传目录",
+            "主链路：采集 → 质量 → 规则 → AI → 事件/风险 → 任务 → 报告"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "id": "actor.analyst",
+          "kind": "actor",
+          "title": "监测分析人员",
+          "subtitle": "analyst · 看画像、查证据、发起 AI 研判",
+          "badge": "analyst",
+          "x": 50,
+          "y": 150,
+          "w": 280,
+          "h": 86,
+          "summary": "负责企业画像、监测趋势和证据链查看；可以发起 AI 研判、手工标记线索，但不能修改企业台账。",
+          "items": [
+            "查看企业画像、风险分级、监测趋势与事件证据",
+            "对线索发起 AI 辅助研判，查看条款引用与拒答理由",
+            "在企业画像或事件工作台新增人工线索（source=MANUAL）"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:19",
+            "README.md:48",
+            "frontend/src/store.js:31-33"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.reviewer",
+          "kind": "actor",
+          "title": "审核人员",
+          "subtitle": "reviewer · 确认线索、处置事件、下发督办",
+          "badge": "reviewer",
+          "x": 50,
+          "y": 290,
+          "w": 280,
+          "h": 86,
+          "summary": "线索确认与撤销、事件拆分合并、核查任务创建下发督办关闭，以及企业台账与点位维护。",
+          "items": [
+            "确认 / 撤销线索，生成、拆分、合并异常事件",
+            "创建并下发核查任务，督办、关闭任务",
+            "维护企业主体、坐标、许可证和排口监测点"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:20",
+            "backend/src/main/java/com/fixedsource/controller/ClueController.java:81-104",
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175",
+            "README.md:49"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.inspector",
+          "kind": "actor",
+          "title": "现场核查人员",
+          "subtitle": "inspector · 接单、取证、反馈闭环",
+          "badge": "inspector",
+          "x": 50,
+          "y": 430,
+          "w": 280,
+          "h": 86,
+          "summary": "通过移动 H5 或 Android 原生端接收任务，现场拍照并叠加时间、地点、企业、点位水印，上传附件并提交反馈。",
+          "items": [
+            "拉取待办任务、接收任务",
+            "拍照 / 定位 / 附件上传，形成现场证据",
+            "提交反馈后由审核人员关闭任务"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:21",
+            "frontend/src/views/mobile/MobileTaskDetail.vue:153-240",
+            "android/app/src/main/java/com/fixedsource/mobile/util/WatermarkRenderer.kt",
+            "README.md:137"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.admin",
+          "kind": "actor",
+          "title": "系统管理员",
+          "subtitle": "admin · 规则、数据源、台账维护",
+          "badge": "admin",
+          "x": 50,
+          "y": 570,
+          "w": 280,
+          "h": 86,
+          "summary": "维护规则启停与阈值、数据源配置、企业台账和点位；可访问全部业务角色权限。",
+          "items": [
+            "规则配置、启停与版本维护",
+            "数据源配置与采集批次查看",
+            "企业台账、点位与用户可见的全部配置"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:22",
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:44-56",
+            "README.md:51"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "channel.web",
+          "kind": "chip",
+          "title": "Web PC 工作台",
+          "subtitle": "15 个业务路由 · 监管大屏",
+          "x": 480,
+          "y": 190,
+          "w": 180,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "container.spa"
+          },
+          "summary": "Vue 3 + Element Plus + ECharts，承载大屏、台账、事件、任务、采集、监测、规则、回测、报告与数据共享页面。",
+          "evidence": [
+            "frontend/src/router.js:6-29",
+            "frontend/package.json:10-17"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "channel.h5",
+          "kind": "chip",
+          "title": "移动 H5",
+          "subtitle": "/m/tasks · 免安装",
+          "x": 680,
+          "y": 190,
+          "w": 180,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "container.spa"
+          },
+          "summary": "与 PC 端共用同一 Vue 构建产物，通过 /m/tasks 路由提供任务列表、详情、接收、拍照水印与反馈。",
+          "evidence": [
+            "frontend/src/router.js:36-38",
+            "frontend/src/views/mobile/MobileTasks.vue:105",
+            "README.md:76-77"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "channel.android",
+          "kind": "chip",
+          "title": "Android 现场端",
+          "subtitle": "Kotlin · 相机水印 · 弱网缓存",
+          "x": 880,
+          "y": 190,
+          "w": 210,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "container.android"
+          },
+          "summary": "原生 Kotlin + Material 3，使用 OkHttp 直连后端 /api/mobile/*，支持任务缓存、相机取证、定位水印和附件上传。",
+          "evidence": [
+            "android/app/build.gradle.kts:18-36",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:57-72",
+            "README.md:137"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.collect",
+          "kind": "chip",
+          "title": "采集与质量",
+          "subtitle": "批次 · 完整率",
+          "x": 480,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.collect"
+          },
+          "summary": "按业务日期从模拟源拉取逐小时监测数据，写入监测记录并生成数据质量留痕。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:73-140"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.rules",
+          "kind": "chip",
+          "title": "规则引擎",
+          "subtitle": "R001–R005",
+          "x": 635,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.rules"
+          },
+          "summary": "五类阈值与一致性规则生成线索，保存证据快照与 fingerprint 去重。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.events",
+          "kind": "chip",
+          "title": "事件与风险",
+          "subtitle": "聚合 · P1–P3",
+          "x": 790,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.events"
+          },
+          "summary": "同企业、点位、污染物、相邻时段的线索聚合为事件，并计算企业风险分与 A/B/C/D 分级。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/EventRiskService.java:33-180"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.ai",
+          "kind": "chip",
+          "title": "AI 研判",
+          "subtitle": "引用 · 拒答",
+          "x": 945,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.ai"
+          },
+          "summary": "本地 mock-rag 检索法规片段，输出解释、条款引用、核查建议、不确定性与置信度；无依据时拒答。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AiService.java:80-200",
+            "backend/src/main/resources/knowledge/regulations.json"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.tasks",
+          "kind": "chip",
+          "title": "任务闭环",
+          "subtitle": "outbox · 反馈",
+          "x": 480,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.tasks"
+          },
+          "summary": "确认线索后创建任务，写 dispatch_outbox 并变更状态；移动端拉取后接收、反馈、关闭。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.ledger",
+          "kind": "chip",
+          "title": "台账与画像",
+          "subtitle": "企业 · 监测",
+          "x": 635,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.ledger"
+          },
+          "summary": "企业主体与点位维护、风险画像、趋势、区域行业态势和监测数据分析。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/EnterpriseController.java:45-287",
+            "frontend/src/views/EnterpriseProfile.vue"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.bigscreen",
+          "kind": "chip",
+          "title": "大屏与地图",
+          "subtitle": "北京 GeoJSON",
+          "x": 790,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.ledger"
+          },
+          "summary": "首页监管大屏使用内置北京 16 区 GeoJSON，离线渲染，不依赖在线地图瓦片。",
+          "evidence": [
+            "frontend/src/components/BeijingRiskMap.vue:16-20",
+            "frontend/src/utils/beijingMap.js",
+            "README.md:99-104"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.sharing",
+          "kind": "chip",
+          "title": "数据共享",
+          "subtitle": "目录 · HMAC",
+          "x": 945,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.catalog"
+          },
+          "summary": "模拟国家数据共享平台的数据目录、打包发布、HMAC 投递、回执与开放拉取。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-530",
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "note.auth",
+          "kind": "note",
+          "title": "认证与会话边界",
+          "subtitle": "X-Token / Bearer · 内存 ConcurrentHashMap · 4 个业务角色 + datahub 服务账号",
+          "x": 480,
+          "y": 580,
+          "w": 610,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "module.auth"
+          },
+          "summary": "登录后签发 UUID token 并存入内存 Map；AuthInterceptor 校验 X-Token 或 Bearer。服务重启会使会话失效。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:17-56",
+            "backend/src/main/java/com/fixedsource/config/AuthInterceptor.java:24-71"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "system.mock-source",
+          "kind": "external",
+          "title": "模拟监测数据源",
+          "subtitle": "10 家企业 · 20 个点位 · 6 类污染物 · 异常剧本",
+          "badge": "同进程 Mock",
+          "x": 1240,
+          "y": 130,
+          "w": 360,
+          "h": 104,
+          "summary": "MockSourceService 按日期生成逐小时监测数据，并内置超限、恒值、突变、状态不一致等异常剧本；通过 /mock-source/v1 暴露。演示库另有台账新增企业 E011 和 2 个点位。",
+          "items": [
+            "GET /mock-source/v1/base-data：企业、点位、污染物标准",
+            "GET /mock-source/v1/monitoring?bizDate=yyyy-MM-dd：逐小时监测记录",
+            "HTTP 采集失败时，CollectService 回退到同一契约的进程内生成器"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/MockSourceController.java:13-28",
+            "backend/src/main/java/com/fixedsource/service/MockSourceService.java:25-70",
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:112-125",
+            "README.md:79-86"
+          ],
+          "confidence": "high",
+          "footer": [
+            "同进程 Mock · 采集失败回退生成器"
+          ]
+        },
+        {
+          "id": "system.data-hub",
+          "kind": "external",
+          "title": "国家数据共享平台（模拟）",
+          "subtitle": "目录 · 打包 · 订阅 · HMAC 投递 · 回执 · 开放拉取",
+          "badge": "逻辑独立 · 同进程",
+          "x": 1240,
+          "y": 290,
+          "w": 360,
+          "h": 150,
+          "summary": "按独立平台建模：从业务平台标准数据服务出口取基础数据，封装为数据包，向 5 个模拟订阅方 HMAC 推送并接收回执，同时提供带 X-Open-Data-Key 的开放拉取接口。物理上与业务后端同 JVM、共用 H2。",
+          "items": [
+            "7 类基础数据集：企业、点位、污染物标准、逐时/逐日监测、重点排污单位、标准库",
+            "data_package / data_dispatch / data_receipt 记录发布、投递与回执",
+            "Docker 首次启动自动发布 7 个演示数据包"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-160",
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:21-80",
+            "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:26-65",
+            "backend/src/main/java/com/fixedsource/config/DataHubBootstrap.java:20-60",
+            "README.md:182"
+          ],
+          "confidence": "high",
+          "footer": [
+            "同 JVM · 共用 H2 · 5 个模拟订阅方"
+          ]
+        },
+        {
+          "id": "actor.subscribers",
+          "kind": "external",
+          "title": "订阅系统 ×5",
+          "subtitle": "npe / enf / city / open / edge · HMAC-SHA256",
+          "badge": "模拟接收端",
+          "x": 1240,
+          "y": 505,
+          "w": 360,
+          "h": 86,
+          "summary": "种子数据中的 5 个模拟订阅系统，各有 app_key / app_secret 与接收端点；由 MockConsumerController 接收并验签、写回执。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/db/SeedService.java:186-200",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:13-30",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:395-445"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.open-consumers",
+          "kind": "external",
+          "title": "开放数据消费者",
+          "subtitle": "X-Open-Data-Key · catalog / latest",
+          "badge": "开放接口",
+          "x": 1240,
+          "y": 616,
+          "w": 360,
+          "h": 86,
+          "summary": "通过独立 API Key 拉取开放数据目录与指定数据集最新数据包，不与业务平台用户 token 混用。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:15-55",
+            "backend/src/main/resources/application.yml:27-31"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "system.regulations",
+          "kind": "knowledge",
+          "title": "公开法规知识库",
+          "subtitle": "knowledge/regulations.json · 10 条法规片段",
+          "badge": "classpath · 本地",
+          "x": 1240,
+          "y": 750,
+          "w": 360,
+          "h": 104,
+          "summary": "本地 JSON 保存 10 条公开法规片段，带 law、clause、ruleCodes、pollutants 元数据；AiService 启动时加载，按规则编码与污染物匹配，最多引用 3 条。",
+          "items": [
+            "不依赖外部模型、向量库或网络，保证离线演示可复现",
+            "无匹配条款时输出拒答，并把线索可信度下调 12 分"
+          ],
+          "evidence": [
+            "backend/src/main/resources/knowledge/regulations.json:1-30",
+            "backend/src/main/java/com/fixedsource/service/AiService.java:43-58",
+            "backend/src/main/java/com/fixedsource/service/AiService.java:137-170"
+          ],
+          "confidence": "high",
+          "footer": [
+            "mock-rag-v1 · 无外部模型 / 向量库"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.analyst-platform",
+          "from": "actor.analyst",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.136
+          },
+          "label": "Web 端操作",
+          "protocol": "HTTP · X-Token",
+          "sync": "sync",
+          "summary": "查看画像、证据与监测数据，发起 AI 研判，手工标记线索。",
+          "evidence": [
+            "frontend/src/api.js:5-17",
+            "frontend/src/router.js:20-24"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.reviewer-platform",
+          "from": "actor.reviewer",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.366
+          },
+          "label": "审核 / 下发",
+          "protocol": "HTTP · X-Token",
+          "sync": "sync",
+          "summary": "确认线索、处置事件、创建与下发任务、督办关闭、维护台账。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/ClueController.java:81-104",
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:62-95"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.inspector-platform",
+          "from": "actor.inspector",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.595
+          },
+          "label": "H5 / Android",
+          "protocol": "HTTP · /api/mobile",
+          "sync": "sync",
+          "summary": "移动端轮询任务列表，接收任务，上传照片附件并提交反馈。",
+          "evidence": [
+            "frontend/src/views/mobile/MobileTasks.vue:105",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:57-90"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.admin-platform",
+          "from": "actor.admin",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.825
+          },
+          "label": "配置 / 台账",
+          "protocol": "HTTP · X-Token",
+          "sync": "sync",
+          "summary": "规则、数据源、企业台账与点位的配置维护。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/RuleController.java:24-33",
+            "backend/src/main/java/com/fixedsource/controller/DataSourceController.java:25-35"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.platform-mock",
+          "from": "system.platform",
+          "to": "system.mock-source",
+          "fromPort": {
+            "side": "r",
+            "at": 0.115
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "labelLines": [
+            "采集 HTTP",
+            "/mock-source/v1"
+          ],
+          "protocol": "HTTP · RestClient",
+          "sync": "sync",
+          "summary": "CollectService 按业务日期拉取监测数据；失败时回退到进程内生成器。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:86-125"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.platform-datahub",
+          "from": "system.platform",
+          "to": "system.data-hub",
+          "fromPort": {
+            "side": "r",
+            "at": 0.443
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.6
+          },
+          "labelLines": [
+            "基础数据出口",
+            "数据包投递"
+          ],
+          "protocol": "HTTP · 服务账号 X-Token",
+          "sync": "sync",
+          "summary": "数据平台通过 /api/data-service/v1/export/{datasetCode} 获取 7 类基础数据，再打包投递给订阅方；开放消费者通过独立 Key 拉取。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80",
+            "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:26-65"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.platform-regulations",
+          "from": "system.platform",
+          "to": "system.regulations",
+          "fromPort": {
+            "side": "b",
+            "at": 0.529
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "via": [
+            [
+              800,
+              760
+            ],
+            [
+              1200,
+              760
+            ],
+            [
+              1200,
+              792
+            ]
+          ],
+          "labelLines": [
+            "条款检索",
+            "本地 JSON"
+          ],
+          "protocol": "in-process",
+          "sync": "sync",
+          "summary": "AiService 启动时从 classpath 加载法规片段，研判时按 ruleCode + pollutant 匹配。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AiService.java:43-58",
+            "backend/src/main/java/com/fixedsource/service/AiService.java:137-150"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.datahub-subscribers",
+          "from": "system.data-hub",
+          "to": "actor.subscribers",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "t",
+            "at": 0.5
+          },
+          "labelLines": [
+            "HMAC-SHA256",
+            "推送 + 回执"
+          ],
+          "protocol": "HTTP POST · mock-consumer",
+          "sync": "sync",
+          "summary": "按订阅方 app_secret 计算签名，POST 到 /mock-consumer/v1/{system}/ingest；接收端校验 AppKey、时间戳、签名与 packageNo 幂等。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-520",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:395-445"
+          ],
+          "confidence": "high",
+          "both": true
+        },
+        {
+          "id": "e.open-datahub",
+          "from": "actor.open-consumers",
+          "to": "system.data-hub",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "r",
+            "at": 0.733
+          },
+          "via": [
+            [
+              1640,
+              659
+            ],
+            [
+              1640,
+              400
+            ]
+          ],
+          "labelLines": [
+            "开放拉取",
+            "独立 Key"
+          ],
+          "protocol": "HTTP GET · /open-data/v1",
+          "sync": "sync",
+          "summary": "开放消费者按独立 Key 拉取目录与最新数据包。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:30-55"
+          ],
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": "containers",
+      "nav": "容器与模块",
+      "level": "L2",
+      "title": "一个 SPA、一个后端、一个文件库，以及逻辑独立的数据共享模块",
+      "caption": "Web PC 与移动 H5 共用同一 Vue 构建产物；Nginx 托管静态资源并反向代理。Spring Boot 后端承载业务模块、模拟数据源和模拟国家数据共享平台，H2 与上传目录落在 Docker volume。",
+      "width": 1720,
+      "height": 1000,
+      "boundaries": [
+        {
+          "id": "container.backend",
+          "kind": "boundary",
+          "title": "Spring Boot 后端",
+          "subtitle": "fixed-source-backend · 44 Java 文件 · 22 Controller",
+          "badge": "8080 · JRE 21",
+          "x": 510,
+          "y": 240,
+          "w": 720,
+          "h": 740,
+          "tone": "backend",
+          "summary": "单体 Spring Boot 应用：业务能力、模拟数据源、国家数据共享平台模拟模块和 Mock 接收端都在同一进程内，通过 Spring RestClient 做自调用和对外 HTTP 调用。",
+          "evidence": [
+            "backend/pom.xml:10-17",
+            "backend/Dockerfile:6-8",
+            "docker-compose.yml:2-22"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "container.datahub",
+          "kind": "boundary",
+          "title": "数据共享平台模块（模拟）",
+          "subtitle": "逻辑独立的国家平台边界",
+          "badge": "同进程 · 共用 H2",
+          "x": 540,
+          "y": 690,
+          "w": 660,
+          "h": 260,
+          "tone": "datahub",
+          "footer": [
+            "5 个订阅方 · HMAC-SHA256 · SHA-256 包哈希 · 回执幂等 · 失败重试",
+            "同一 JVM 内模拟跨平台对接，不是独立部署单元"
+          ],
+          "summary": "数据目录、打包发布、订阅投递、回执、开放拉取与 Mock 接收端。物理上与业务后端同进程，但按独立平台逻辑建模。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/DataHubController.java:19-110",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-530",
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "panels": [],
+      "nodes": [
+        {
+          "id": "container.spa",
+          "kind": "container",
+          "title": "Vue 3 单页应用",
+          "subtitle": "PC 工作台 + 移动 H5 · 同一构建产物",
+          "badge": "浏览器",
+          "x": 80,
+          "y": 90,
+          "w": 380,
+          "h": 130,
+          "tech": [
+            "Vue 3.4",
+            "Vite 5",
+            "Element Plus",
+            "ECharts",
+            "Axios"
+          ],
+          "summary": "15 个 PC 业务路由 + 2 个移动任务路由；Element Plus 提供组件，ECharts 渲染大屏和监测图表，内置北京 GeoJSON 离线地图。",
+          "items": [
+            "PC：大屏、区域态势、企业台账与画像、事件、任务、采集、监测、质量、规则、回测、测试数据、集成、数据共享、报告",
+            "移动 H5：/m/tasks 列表、/m/tasks/:taskNo 详情、接收、拍照水印与反馈",
+            "请求统一走 /api，拦截器附加 X-Token；401 自动清理会话并跳转登录"
+          ],
+          "evidence": [
+            "frontend/src/router.js:6-38",
+            "frontend/src/api.js:5-29",
+            "frontend/package.json:10-22",
+            "frontend/src/components/BeijingRiskMap.vue:16-20"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "container.android",
+          "kind": "container",
+          "title": "Android 现场核查端",
+          "subtitle": "Kotlin · Material 3 · 相机 / 定位水印",
+          "badge": "原生 App",
+          "x": 1340,
+          "y": 90,
+          "w": 300,
+          "h": 130,
+          "tech": [
+            "Kotlin",
+            "AGP 8.4.2",
+            "OkHttp",
+            "Gson",
+            "Coroutines"
+          ],
+          "summary": "独立原生客户端，直连后端 /api/mobile/*。默认服务地址为模拟器 10.0.2.2:8080，登录时可配置；支持任务缓存、相机取证、Canvas 水印、附件上传与 401 处理。",
+          "items": [
+            "12 个 Kotlin 源文件：登录、任务列表、任务详情、缓存、会话、定位、水印",
+            "AndroidManifest 声明网络、粗略/精确定位与明文流量（演示环境）",
+            "当前环境无模拟器/真机，相机与 UI 运行验收仍待补测（README 明示）"
+          ],
+          "evidence": [
+            "android/app/build.gradle.kts:18-36",
+            "android/app/src/main/AndroidManifest.xml:10-24",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:21-90",
+            "android/app/src/main/java/com/fixedsource/mobile/util/WatermarkRenderer.kt",
+            "README.md:296-303",
+            "README.md:389"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "container.nginx",
+          "kind": "container",
+          "title": "Nginx 静态站与反向代理",
+          "subtitle": "托管 dist 与 APK 下载，代理 API 与开放接口",
+          "badge": "8088 → 80",
+          "x": 80,
+          "y": 290,
+          "w": 380,
+          "h": 110,
+          "tech": [
+            "nginx:1.27-alpine",
+            "try_files → index.html",
+            "client_max_body_size 20m"
+          ],
+          "summary": "前端容器：托管 Vue 构建产物与 Android APK；把 /api、/open-data、/mock-consumer、/mock-source、/uploads 反向代理到 backend:8080。",
+          "items": [
+            "SPA 路由回退：try_files $uri $uri/ /index.html",
+            "/uploads 代理到后端文件接口，限制上传 20MB",
+            "Docker Compose 中依赖 backend 健康检查通过后启动"
+          ],
+          "evidence": [
+            "frontend/nginx.conf:1-42",
+            "frontend/Dockerfile:1-8",
+            "docker-compose.yml:24-36"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.auth",
+          "kind": "module",
+          "title": "认证与会话",
+          "subtitle": "X-Token · 内存会话 · 角色校验",
+          "x": 540,
+          "y": 330,
+          "w": 200,
+          "h": 74,
+          "summary": "4 个业务角色 + datahub 服务账号；登录签发 UUID token，存内存 ConcurrentHashMap；拦截器校验 X-Token 或 Bearer，控制器内做细粒度角色判断。",
+          "items": [
+            "admin 隐式拥有全部角色权限",
+            "服务重启使 token 全部失效",
+            "公开路径：登录、健康检查、mock-source、uploads、h2-console"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:17-56",
+            "backend/src/main/java/com/fixedsource/config/AuthInterceptor.java:24-71",
+            "backend/src/main/java/com/fixedsource/config/WebConfig.java"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.collect",
+          "kind": "module",
+          "title": "采集接入",
+          "subtitle": "批次 · HTTP 拉取 · 幂等",
+          "x": 770,
+          "y": 330,
+          "w": 200,
+          "h": 74,
+          "summary": "POST /api/collect-batches 触发：创建批次 → HTTP 拉取模拟源 → MERGE 监测记录 → 同步真值标签 → 记录数据质量 → 规则、AI、事件与风险 → 审计。代码中未发现 @Scheduled 定时任务。",
+          "items": [
+            "批次号 CB+时间戳+随机数；同业务日期可重跑",
+            "监测记录按企业+点位+污染物+时间 MERGE，天然幂等",
+            "采集失败回退到 MockSourceService 同契约生成器"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/CollectController.java:31-40",
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:73-140",
+            "backend/src/main/java/com/fixedsource/FixedSourceApplication.java:8",
+            "README.md:130"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.quality",
+          "kind": "module",
+          "title": "数据质量",
+          "subtitle": "缺失 / 异常 · 24h 完整率",
+          "x": 1000,
+          "y": 330,
+          "w": 200,
+          "h": 74,
+          "summary": "按点位、污染物、日期记录缺失与异常问题，计算每日完整率（应到 24 小时），支持汇总、明细、Top 点位与回填。",
+          "items": [
+            "data_quality_issue 保留问题类型、严重度、批次与日期",
+            "监测页与质量页共用口径：完整率 = 有效小时 / 24",
+            "回填区间用于历史演示数据"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataQualityService.java:25-92",
+            "backend/src/main/java/com/fixedsource/controller/DataQualityController.java:14-33"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.rules",
+          "kind": "module",
+          "title": "规则引擎",
+          "subtitle": "R001–R005 · 证据快照",
+          "x": 540,
+          "y": 420,
+          "w": 200,
+          "h": 74,
+          "summary": "按点位与污染物读取当日小时序列，执行启用的规则；命中后写 clue，保存触发值、阈值、时间范围、证据列表与 fingerprint 去重。",
+          "items": [
+            "R001 浓度超限：连续超限小时聚合，≥1.3×限值为 HIGH",
+            "R002 数据缺失：少于 22 小时；R003 连续恒值；R004 异常突变；R005 状态不一致",
+            "基础可信度按规则与严重度给出，后续可被 AI 引用覆盖调整"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:38-215",
+            "backend/src/main/java/com/fixedsource/db/SchemaService.java:83-122"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.events",
+          "kind": "module",
+          "title": "事件聚合与风险",
+          "subtitle": "P1–P3 · A/B/C/D · 拆分合并",
+          "x": 770,
+          "y": 420,
+          "w": 200,
+          "h": 74,
+          "summary": "同企业、排口、污染物、相邻时段的线索聚合为事件；按严重度与可信度定 P1/P2/P3；企业风险按 7 日事件、数据完整率与待办任务计算 A/B/C/D。",
+          "items": [
+            "P1：HIGH 且可信度 ≥65；P2：HIGH 或 MEDIUM 且 ≥55；其余 P3",
+            "风险分 = high×16 + medium×8 + low×3 + (100-完整率)×0.35 + 待办任务×4",
+            "事件状态由线索状态派生：PENDING / CONFIRMED / DISPATCHED / FEEDBACK / CLOSED"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/EventRiskService.java:33-180",
+            "backend/src/main/java/com/fixedsource/controller/EventController.java:15-54"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.ai",
+          "kind": "module",
+          "title": "AI 辅助研判",
+          "subtitle": "mock-rag · 引用 / 拒答",
+          "x": 1000,
+          "y": 420,
+          "w": 200,
+          "h": 74,
+          "summary": "按规则编码与污染物检索本地法规片段，生成解释、核查建议、条款引用与不确定性；无匹配时拒答，并把线索可信度下调 12 分。",
+          "items": [
+            "置信度：拒答 0.18；命中时 min(0.88, 0.58 + 0.08×引用数)",
+            "引用最多 3 条；命中后可信度 +8",
+            "确定性 mock RAG，不调用外部模型或网络"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AiService.java:80-200",
+            "backend/src/main/resources/knowledge/regulations.json",
+            "README.md:223"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.tasks",
+          "kind": "module",
+          "title": "任务闭环",
+          "subtitle": "状态机 · outbox · 轮询",
+          "x": 540,
+          "y": 510,
+          "w": 200,
+          "h": 74,
+          "summary": "审核确认线索后创建任务；下发时写 dispatch_outbox、设置 external_no 与状态；移动端轮询 /api/mobile/tasks 拉取，接收、反馈、关闭；支持督办与重试对账。",
+          "items": [
+            "任务状态与线索状态分离，关闭时同步回写",
+            "下发是 outbox 记录 + 状态变更，没有独立推送网关",
+            "移动 H5 与 Android 共用 /api/mobile/*"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175",
+            "backend/src/main/java/com/fixedsource/controller/TaskController.java:24-92",
+            "frontend/src/views/mobile/MobileTasks.vue:105"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.ledger",
+          "kind": "module",
+          "title": "台账 · 画像 · 大屏",
+          "subtitle": "企业 / 点位 / 监测 / 态势",
+          "x": 770,
+          "y": 510,
+          "w": 200,
+          "h": 74,
+          "summary": "企业台账与排口监测点维护、企业风险画像、监测数据分析、区域/行业态势和首页监管大屏；地图使用内置 GeoJSON 离线渲染。",
+          "items": [
+            "台账维护写 audit_log；风险分只由规则、事件与反馈计算",
+            "监测页支持逐时曲线、日走势、24 小时画像、热力图与日汇总",
+            "大屏支持风险/密度/事件三种图层与区域、企业下钻"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/EnterpriseController.java:45-287",
+            "backend/src/main/java/com/fixedsource/controller/DashboardController.java:28",
+            "backend/src/main/java/com/fixedsource/controller/CockpitController.java:26",
+            "backend/src/main/java/com/fixedsource/controller/MonitoringController.java:32"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.ops",
+          "kind": "module",
+          "title": "回测 · 报告 · 测试数据",
+          "subtitle": "回测 · 报告 · 真值标签",
+          "x": 1000,
+          "y": 510,
+          "w": 200,
+          "h": 74,
+          "summary": "规则回测按规则+点位+污染物+日期统计命中；报告库生成可打印核查报告；测试数据页维护异常真值标签并支持 CSV 导出。",
+          "items": [
+            "backtest_run 保存回测区间、命中与指标",
+            "inspection_report 关联事件与任务，浏览器打印 / 导出 PDF",
+            "test_anomaly_label 与线索命中对照"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/BacktestService.java:31-150",
+            "backend/src/main/java/com/fixedsource/service/ReportService.java:28-199",
+            "backend/src/main/java/com/fixedsource/service/LabelService.java:22-50"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.export",
+          "kind": "module",
+          "title": "基础数据服务出口",
+          "subtitle": "7 类数据集 · 服务账号",
+          "x": 540,
+          "y": 600,
+          "w": 200,
+          "h": 74,
+          "summary": "业务平台向数据共享平台暴露的标准出口，只共享企业、点位、污染物标准、监测与公开名录等基础数据；规则、事件、风险、AI 和任务闭环不进入共享域。",
+          "items": [
+            "ENTERPRISE_MASTER / MONITOR_POINT_MASTER / POLLUTANT_STANDARD",
+            "MONITORING_HOURLY / MONITORING_DAILY",
+            "KEY_DISCHARGE_UNIT / STANDARD_LIBRARY"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:18-65",
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "note.runtime",
+          "kind": "note",
+          "title": "运行形态",
+          "subtitle": "单 JVM · 无消息队列 · 无外部模型 · 无在线地图瓦片",
+          "x": 770,
+          "y": 600,
+          "w": 430,
+          "h": 74,
+          "summary": "原型以可离线复现为目标：数据共享用 RestClient 自调用，任务下发用 outbox 表，AI 用本地 JSON 检索，地图用内置 GeoJSON。",
+          "evidence": [
+            "README.md:212-223",
+            "docker-compose.yml:1-38"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.catalog",
+          "kind": "module",
+          "title": "数据目录 / 打包发布",
+          "subtitle": "自调用出口 · SHA-256",
+          "x": 565,
+          "y": 770,
+          "w": 190,
+          "h": 80,
+          "summary": "读取开放目录，调用业务数据服务出口，封装 header + body 数据包，计算 payload hash，写 data_package，再逐个订阅方投递。",
+          "items": [
+            "包号 DP+时间戳；状态 PUBLISHED / DISTRIBUTED / PARTIAL / FAILED",
+            "Docker 首次启动自动发布 7 个演示包"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-160",
+            "backend/src/main/java/com/fixedsource/config/DataHubBootstrap.java:20-60"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.dispatch",
+          "kind": "module",
+          "title": "HMAC 投递 / 回执",
+          "subtitle": "5 订阅方 · 时间窗 · 幂等",
+          "x": 775,
+          "y": 770,
+          "w": 200,
+          "h": 80,
+          "summary": "用订阅方 secret 计算 HMAC-SHA256(timestamp + packageNo + sha256(body))，POST 到接收端；记录 HTTP 状态、延迟、签名与响应，失败可重试。",
+          "items": [
+            "请求头：X-DataHub-App-Key / Timestamp / Signature / Package-No",
+            "接收端校验 10 分钟时间窗与 packageNo 幂等",
+            "data_dispatch 状态 SENT / FAILED，retry_count 可追踪"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-530",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:672-680"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.opendata",
+          "kind": "module",
+          "title": "开放拉取 / Mock 接收",
+          "subtitle": "开放 Key · Mock 接收",
+          "x": 995,
+          "y": 770,
+          "w": 180,
+          "h": 80,
+          "summary": "开放接口以独立 X-Open-Data-Key 提供 catalog 与 latest；MockConsumerController 模拟订阅方接收并验签、写回执。",
+          "items": [
+            "开放 Key 与业务 token 分离",
+            "接收回执包含 receiptNo、packageNo、validation=HMAC-SHA256"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:13-30"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "store.h2",
+          "kind": "store",
+          "title": "H2 文件数据库",
+          "subtitle": "jdbc:h2:file:/app/data/fixedsource · MODE=MySQL",
+          "badge": "25 张表",
+          "x": 1300,
+          "y": 250,
+          "w": 340,
+          "h": 400,
+          "lines": [
+            [
+              "基础主数据",
+              "enterprise · monitor_point · pollutant · public_reference_item"
+            ],
+            [
+              "监测与采集",
+              "monitoring_record · collect_batch · data_quality_issue · data_source_config"
+            ],
+            [
+              "规则与线索",
+              "rule_config · clue · test_anomaly_label · backtest_run"
+            ],
+            [
+              "事件与研判",
+              "abnormal_event · risk_snapshot · ai_assessment"
+            ],
+            [
+              "任务与报告",
+              "inspection_task · task_feedback · inspection_report · dispatch_outbox · audit_log"
+            ],
+            [
+              "数据共享",
+              "data_catalog · data_subscriber · data_package · data_dispatch · data_receipt"
+            ]
+          ],
+          "summary": "单文件 H2 数据库，SchemaService 启动时建表，DataInitializer 执行种子与补充数据；Docker 下挂载 fixed-source-data volume。",
+          "items": [
+            "25 张表，覆盖主数据、监测、规则、事件、任务与共享域",
+            "MODE=MySQL 兼容语法；无 ORM，直接 JdbcTemplate",
+            "单节点文件库，无备份与高可用，适合演示"
+          ],
+          "evidence": [
+            "backend/src/main/resources/application.yml:6-13",
+            "backend/src/main/resources/application-docker.yml:1-10",
+            "backend/src/main/java/com/fixedsource/db/SchemaService.java:17-405",
+            "backend/src/main/java/com/fixedsource/db/DataInitializer.java:14-24",
+            "docker-compose.yml:13-16"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "store.uploads",
+          "kind": "store",
+          "title": "上传目录",
+          "subtitle": "/app/uploads · 现场照片与附件",
+          "badge": "Docker volume",
+          "x": 1300,
+          "y": 860,
+          "w": 340,
+          "h": 110,
+          "summary": "multipart 上传落盘，单文件上限 10MB、请求上限 20MB；Docker 下挂载 fixed-source-uploads volume。",
+          "items": [
+            "POST /api/files 保存文件并返回可访问 URL",
+            "Nginx 把 /uploads 代理到后端",
+            "无对象存储、病毒扫描或生命周期策略"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/FileController.java:20-40",
+            "backend/src/main/resources/application.yml:13-17",
+            "docker-compose.yml:13-16",
+            "frontend/nginx.conf:31-35"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "external.mock-source",
+          "kind": "external",
+          "title": "模拟监测数据源",
+          "subtitle": "/mock-source/v1 · 10 企业 / 20 点位 / 6 污染物",
+          "badge": "同进程 Mock",
+          "x": 80,
+          "y": 740,
+          "w": 380,
+          "h": 140,
+          "summary": "与业务后端同进程的模拟源，按业务日期生成逐小时监测记录和异常剧本；CollectService 通过 HTTP 拉取，失败时回退进程内生成器。",
+          "items": [
+            "基础数据接口提供企业、点位、污染物标准",
+            "监测接口按 bizDate 返回 expectedCount 与 records",
+            "演示库另有 E011 和 2 个点位由台账新增"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/MockSourceController.java:13-28",
+            "backend/src/main/java/com/fixedsource/service/MockSourceService.java:25-70",
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:86-125"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.subscribers",
+          "kind": "external",
+          "title": "订阅系统 ×5 + 开放消费者",
+          "subtitle": "npe / enf / city / open / edge · X-Open-Data-Key",
+          "badge": "逻辑外部",
+          "x": 1300,
+          "y": 700,
+          "w": 340,
+          "h": 120,
+          "summary": "5 个模拟订阅系统接收 HMAC 投递并回执；开放消费者通过独立 Key 拉取目录与最新数据包。物理上接收端也在同一后端进程内。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/db/SeedService.java:186-200",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:13-30",
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.spa-nginx",
+          "from": "container.spa",
+          "to": "container.nginx",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "t",
+            "at": 0.5
+          },
+          "labelLines": [
+            "静态资源 / XHR"
+          ],
+          "protocol": "HTTP",
+          "sync": "sync",
+          "summary": "浏览器先加载 Nginx 托管的 SPA，再由页面发起 /api 请求；SPA 路由回退到 index.html。",
+          "evidence": [
+            "frontend/nginx.conf:37-39",
+            "frontend/src/api.js:5-8"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.nginx-backend",
+          "from": "container.nginx",
+          "to": "container.backend",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.142
+          },
+          "labelLines": [
+            "代理"
+          ],
+          "protocol": "HTTP · proxy_pass",
+          "sync": "sync",
+          "summary": "代理 /api、/open-data、/mock-consumer、/mock-source 与 /uploads 到 backend:8080。",
+          "evidence": [
+            "frontend/nginx.conf:6-36"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.android-backend",
+          "from": "container.android",
+          "to": "container.backend",
+          "fromPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "t",
+            "at": 0.93
+          },
+          "via": [
+            [
+              1290,
+              155
+            ],
+            [
+              1290,
+              225
+            ],
+            [
+              1180,
+              225
+            ]
+          ],
+          "labelLines": [
+            "HTTP 8080",
+            "X-Token"
+          ],
+          "protocol": "HTTP · OkHttp",
+          "sync": "sync",
+          "summary": "Android 直连后端地址（默认模拟器 10.0.2.2:8080），不经过 Nginx；服务地址可在登录时配置。",
+          "evidence": [
+            "android/app/build.gradle.kts:33",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:21-60"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.backend-h2",
+          "from": "container.backend",
+          "to": "store.h2",
+          "fromPort": {
+            "side": "r",
+            "at": 0.284
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "labelLines": [
+            "JDBC"
+          ],
+          "protocol": "JDBC · JdbcTemplate",
+          "sync": "sync",
+          "summary": "所有业务模块与数据共享模块通过 JdbcTemplate 读写同一个 H2 文件库。",
+          "evidence": [
+            "backend/pom.xml:33-37",
+            "backend/src/main/resources/application.yml:6-13"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.backend-uploads",
+          "from": "container.backend",
+          "to": "store.uploads",
+          "fromPort": {
+            "side": "r",
+            "at": 0.892
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.36
+          },
+          "labelLines": [
+            "附件上传"
+          ],
+          "protocol": "本地文件系统",
+          "sync": "sync",
+          "summary": "照片与附件写入 /app/uploads，Docker volume 持久化；Nginx 代理读取。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/FileController.java:20-40",
+            "docker-compose.yml:13-16"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.collect-mock",
+          "from": "module.collect",
+          "to": "external.mock-source",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "via": [
+            [
+              870,
+              412
+            ],
+            [
+              530,
+              412
+            ],
+            [
+              530,
+              810
+            ]
+          ],
+          "labelLines": [],
+          "protocol": "HTTP · RestClient",
+          "sync": "sync",
+          "summary": "采集模块按业务日期请求模拟源监测接口；异常时使用进程内生成器兜底。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:86-125"
+          ],
+          "confidence": "high",
+          "label": ""
+        },
+        {
+          "id": "e.catalog-export",
+          "from": "module.catalog",
+          "to": "module.export",
+          "fromPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "b",
+            "at": 0.8
+          },
+          "labelLines": [],
+          "protocol": "HTTP · /api/data-service/v1",
+          "sync": "sync",
+          "summary": "数据平台模块通过 DataHubSourceClient 用 datahub 服务账号登录业务平台，再导出租基础数据集；这是同进程内的真实 HTTP 自调用。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80"
+          ],
+          "confidence": "high",
+          "label": "",
+          "via": [
+            [
+              530,
+              810
+            ],
+            [
+              530,
+              682
+            ],
+            [
+              700,
+              682
+            ]
+          ]
+        },
+        {
+          "id": "e.datahub-subscribers",
+          "from": "module.dispatch",
+          "to": "actor.subscribers",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "via": [
+            [
+              875,
+              875
+            ],
+            [
+              1250,
+              875
+            ],
+            [
+              1250,
+              760
+            ]
+          ],
+          "labelLines": [
+            "HMAC 投递",
+            "回执"
+          ],
+          "protocol": "HTTP POST · mock-consumer",
+          "sync": "sync",
+          "summary": "逐个订阅方计算签名并投递，接收端验签后写回执；失败记录 data_dispatch 并可重试。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-530",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:21-30"
+          ],
+          "confidence": "high",
+          "both": true
+        }
+      ]
+    }
+  ],
+  "flowView": {
+    "title": "关键闭环",
+    "caption": "两条端到端链路：监测研判与任务闭环，以及基础数据共享闭环。步骤中的表名与接口均可在代码中找到对应实现。",
+    "flows": [
+      {
+        "id": "business",
+        "title": "监测研判与任务闭环",
+        "subtitle": "模拟源出数 → 采集 → 规则 → AI → 事件风险 → 审核下发 → 现场反馈关闭",
+        "steps": [
+          {
+            "n": 1,
+            "lane": "自动",
+            "title": "模拟源出数",
+            "desc": "按业务日期生成逐小时监测记录，内置超限、恒值、突变、状态不一致等异常剧本。",
+            "artifact": "GET /mock-source/v1/monitoring",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/MockSourceService.java:154-235"
+            ],
+            "summary": "模拟源是同一后端进程内的模块；CollectService 通过 HTTP 访问它，失败时可回退到进程内生成器。"
+          },
+          {
+            "n": 2,
+            "lane": "自动",
+            "title": "采集批次入库",
+            "desc": "创建批次，拉取记录并按企业+点位+污染物+时间 MERGE，重复采集保持幂等。",
+            "artifact": "collect_batch · monitoring_record",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/CollectService.java:73-140"
+            ],
+            "summary": "POST /api/collect-batches 触发；代码中未发现 @Scheduled 定时任务，采集不是由调度器自动发起。"
+          },
+          {
+            "n": 3,
+            "lane": "自动",
+            "title": "质量校验",
+            "desc": "记录缺失与异常，按 24 个应到小时计算每日完整率，保留批次与日期。",
+            "artifact": "data_quality_issue",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataQualityService.java:25-92"
+            ],
+            "summary": "质量问题与监测记录同批次生成，供质量页汇总、明细与 Top 点位使用。"
+          },
+          {
+            "n": 4,
+            "lane": "自动",
+            "title": "规则生成线索",
+            "desc": "执行 R001–R005，命中后写 clue，保存触发值、阈值、时间范围、证据与 fingerprint。",
+            "artifact": "clue · rule_config",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+            ],
+            "summary": "规则可在页面启停；线索来源区分 AUTO 与 MANUAL，进入同一聚合链路。"
+          },
+          {
+            "n": 5,
+            "lane": "自动",
+            "title": "AI 辅助研判",
+            "desc": "按规则编码与污染物检索 10 条本地法规片段；命中输出条款引用，未命中拒答并降低可信度。",
+            "artifact": "ai_assessment",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/AiService.java:80-200",
+              "backend/src/main/resources/knowledge/regulations.json"
+            ],
+            "summary": "mock-rag-v1 是确定性实现，输出解释、建议、引用、不确定性与置信度，保留人工复核边界。"
+          },
+          {
+            "n": 6,
+            "lane": "自动",
+            "title": "事件聚合与风险",
+            "desc": "同企业/排口/污染物/相邻时段聚合为事件，定 P1–P3；按 7 日事件、完整率与待办任务计算 A/B/C/D。",
+            "artifact": "abnormal_event · risk_snapshot",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/EventRiskService.java:33-180"
+            ],
+            "summary": "事件可拆分、合并；风险分写 enterprise 并留 risk_snapshot，权重版本 risk-v1。"
+          },
+          {
+            "n": 7,
+            "lane": "审核",
+            "title": "确认线索并下发任务",
+            "desc": "审核人员确认线索，创建 inspection_task，写 dispatch_outbox 并置 DISPATCHED；可督办与重试对账。",
+            "artifact": "inspection_task · dispatch_outbox",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/ClueController.java:81-104",
+              "backend/src/main/java/com/fixedsource/service/TaskService.java:31-95"
+            ],
+            "summary": "下发是 outbox 记录与状态变更，移动端通过轮询拉取；没有独立推送网关或消息队列。"
+          },
+          {
+            "n": 8,
+            "lane": "现场",
+            "title": "现场取证与关闭",
+            "desc": "H5 / Android 拉取任务，接收后拍照并叠加时间地点水印、上传附件、提交反馈；审核关闭后事件状态回写。",
+            "artifact": "task_feedback · inspection_report",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/TaskService.java:98-175",
+              "frontend/src/views/mobile/MobileTaskDetail.vue:153-240",
+              "android/app/src/main/java/com/fixedsource/mobile/util/WatermarkRenderer.kt"
+            ],
+            "summary": "任务状态与线索状态分离；移动端重复提交有保护，报告可在浏览器打印或导出 PDF。"
+          }
+        ]
+      },
+      {
+        "id": "sharing",
+        "title": "基础数据共享闭环",
+        "subtitle": "数据服务出口 → 数据包封装 → HMAC 投递 → 验签回执 → 对账重试 / 开放拉取",
+        "steps": [
+          {
+            "n": 1,
+            "lane": "业务平台",
+            "title": "基础数据服务出口",
+            "desc": "数据平台用 datahub 服务账号获取 7 类基础数据集；规则、事件、风险、AI 与任务不共享。",
+            "artifact": "GET /api/data-service/v1/export/{code}",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:26-65",
+              "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80"
+            ],
+            "summary": "通过真实 HTTP + 服务账号 token 对接，不直接读业务库。"
+          },
+          {
+            "n": 2,
+            "lane": "数据平台",
+            "title": "封装数据包",
+            "desc": "header + body 封装，计算 SHA-256 payload hash，写 data_package，状态 PUBLISHED。",
+            "artifact": "data_package",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-160"
+            ],
+            "summary": "包号 DP+时间戳；记录数据集、业务日期、记录数与敏感级别。"
+          },
+          {
+            "n": 3,
+            "lane": "数据平台",
+            "title": "HMAC 投递",
+            "desc": "按订阅方 secret 计算 HMAC-SHA256(timestamp + packageNo + sha256(body))，POST 到接收端。",
+            "artifact": "data_dispatch",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-520"
+            ],
+            "summary": "记录 HTTP 状态、延迟、签名、响应和错误；失败可重试。"
+          },
+          {
+            "n": 4,
+            "lane": "订阅方",
+            "title": "验签与幂等接收",
+            "desc": "校验 AppKey、10 分钟时间窗、HMAC 签名；按 packageNo 幂等，写 data_receipt。",
+            "artifact": "data_receipt",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:21-30",
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:395-445"
+            ],
+            "summary": "回执包含 receiptNo、packageNo、validation=HMAC-SHA256。"
+          },
+          {
+            "n": 5,
+            "lane": "数据平台",
+            "title": "对账与重试",
+            "desc": "汇总成功/失败投递，计算包状态；支持单条重试和下发对账。",
+            "artifact": "data_dispatch · 对账接口",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:529-535",
+              "backend/src/main/java/com/fixedsource/controller/IntegrationController.java:23-56"
+            ],
+            "summary": "包状态 PUBLISHED / DISTRIBUTED / PARTIAL / FAILED；重试会累加 retry_count。"
+          },
+          {
+            "n": 6,
+            "lane": "开放方",
+            "title": "开放数据拉取",
+            "desc": "使用独立 X-Open-Data-Key 获取开放目录与指定数据集最新数据包。",
+            "artifact": "GET /open-data/v1/catalog",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:30-55"
+            ],
+            "summary": "开放 Key 与业务用户 token 分离，避免混用权限。"
+          }
+        ]
+      }
+    ],
+    "tracks": [
+      {
+        "name": "线索状态",
+        "states": [
+          "PENDING",
+          "CONFIRMED",
+          "DISPATCHED",
+          "IN_PROGRESS",
+          "FEEDBACK",
+          "CLOSED"
+        ],
+        "note": "审核可置 REVOKED；事件状态由线索状态派生"
+      },
+      {
+        "name": "任务状态",
+        "states": [
+          "PENDING_DISPATCH",
+          "DISPATCHED",
+          "IN_PROGRESS",
+          "FEEDBACK",
+          "CLOSED"
+        ],
+        "note": "移动端轮询拉取；关闭后回写线索与事件"
+      }
+    ]
+  },
+  "dataView": {
+    "title": "数据资产与关键口径",
+    "caption": "25 张 H2 表分属 6 个数据域；右侧列出规则、事件优先级、风险分级、AI 置信度等可复现口径。",
+    "domains": [
+      {
+        "name": "基础主数据",
+        "tone": "green",
+        "count": 4,
+        "tables": [
+          {
+            "name": "enterprise",
+            "note": "主体、区域、行业、生产状态、风险分/等级"
+          },
+          {
+            "name": "monitor_point",
+            "note": "排口 / 监测点、点位类型、运行状态"
+          },
+          {
+            "name": "pollutant",
+            "note": "污染物、单位、执行限值、标准引用"
+          },
+          {
+            "name": "public_reference_item",
+            "note": "重点排污单位名录、标准与指南元数据"
+          }
+        ],
+        "key": "演示数据 11 家企业 · 22 个点位 · 6 类污染物",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:17-48",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:313-337",
+          "README.md:79-84"
+        ]
+      },
+      {
+        "name": "监测与采集",
+        "tone": "teal",
+        "count": 4,
+        "tables": [
+          {
+            "name": "monitoring_record",
+            "note": "逐小时实测/折算/流量、数据状态、批次"
+          },
+          {
+            "name": "collect_batch",
+            "note": "批次、应收/实收、成功/失败、耗时与说明"
+          },
+          {
+            "name": "data_quality_issue",
+            "note": "缺失/异常问题、严重度、点位与日期"
+          },
+          {
+            "name": "data_source_config",
+            "note": "数据源连接与启停配置"
+          }
+        ],
+        "key": "35,685 条 30 天逐小时记录；每日完整率按 24 小时计算",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:49-82",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:231-258",
+          "README.md:82"
+        ]
+      },
+      {
+        "name": "规则与线索",
+        "tone": "blue",
+        "count": 4,
+        "tables": [
+          {
+            "name": "rule_config",
+            "note": "规则编码、阈值、启停与版本"
+          },
+          {
+            "name": "clue",
+            "note": "证据快照、fingerprint、来源、可信度、AI 状态"
+          },
+          {
+            "name": "test_anomaly_label",
+            "note": "异常真值标签与命中对照"
+          },
+          {
+            "name": "backtest_run",
+            "note": "回测区间、命中与指标结果"
+          }
+        ],
+        "key": "R001–R005；线索状态 PENDING → CONFIRMED → … → CLOSED",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:83-143",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:260-297",
+          "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+        ]
+      },
+      {
+        "name": "事件 · 风险 · 研判",
+        "tone": "amber",
+        "count": 3,
+        "tables": [
+          {
+            "name": "abnormal_event",
+            "note": "聚合事件、优先级 P1–P3、最大严重度、可信度"
+          },
+          {
+            "name": "risk_snapshot",
+            "note": "风险分、等级、因子 JSON、权重版本"
+          },
+          {
+            "name": "ai_assessment",
+            "note": "模型、提示版本、内容、引用、置信度、拒答"
+          }
+        ],
+        "key": "P1：HIGH 且可信度 ≥65；风险 A/B/C/D 按 25/50/75 分界",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:124-156",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:209-219",
+          "backend/src/main/java/com/fixedsource/service/EventRiskService.java:133-180"
+        ]
+      },
+      {
+        "name": "任务与报告",
+        "tone": "rose",
+        "count": 5,
+        "tables": [
+          {
+            "name": "inspection_task",
+            "note": "任务状态、SLA、外发单号、督办"
+          },
+          {
+            "name": "task_feedback",
+            "note": "反馈内容、照片附件、提交人"
+          },
+          {
+            "name": "inspection_report",
+            "note": "可打印核查报告"
+          },
+          {
+            "name": "dispatch_outbox",
+            "note": "下发消息、目标、请求/响应、重试"
+          },
+          {
+            "name": "audit_log",
+            "note": "台账、采集、确认、下发等审计"
+          }
+        ],
+        "key": "任务与线索状态分离；outbox 可重试对账",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:157-230",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:298-312",
+          "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175"
+        ]
+      },
+      {
+        "name": "数据共享",
+        "tone": "indigo",
+        "count": 5,
+        "tables": [
+          {
+            "name": "data_catalog",
+            "note": "7 类开放数据目录、敏感级别、启停"
+          },
+          {
+            "name": "data_subscriber",
+            "note": "订阅方、app_key/secret、端点"
+          },
+          {
+            "name": "data_package",
+            "note": "数据包 header/body、payload hash、状态"
+          },
+          {
+            "name": "data_dispatch",
+            "note": "投递状态、HTTP 状态、延迟、签名、重试"
+          },
+          {
+            "name": "data_receipt",
+            "note": "回执号、验签状态、幂等记录"
+          }
+        ],
+        "key": "5 个模拟订阅方；SHA-256 包哈希 + HMAC-SHA256 签名",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:338-420",
+          "backend/src/main/java/com/fixedsource/db/SeedService.java:186-200",
+          "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-530"
+        ]
+      }
+    ],
+    "algorithms": [
+      {
+        "title": "规则口径",
+        "lines": [
+          "R001 浓度超限：连续超限小时聚为一条线索；峰值 ≥1.3×限值为 HIGH，否则 MEDIUM",
+          "R002 数据缺失：当日有效记录少于 22 小时",
+          "R003 连续恒值；R004 异常突变；R005 状态不一致（HIGH）"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+        ]
+      },
+      {
+        "title": "事件与风险",
+        "lines": [
+          "事件优先级：HIGH 且可信度 ≥65 → P1；HIGH 或（MEDIUM 且 ≥55）→ P2；其余 P3",
+          "风险分 = high×16 + medium×8 + low×3 + (100−完整率)×0.35 + 待办任务×4，截断 0–100",
+          "分级：<25 A；<50 B；<75 C；其余 D；权重版本 risk-v1"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/EventRiskService.java:108-180"
+        ]
+      },
+      {
+        "title": "AI 引用与拒答",
+        "lines": [
+          "按 ruleCode + pollutant 匹配，最多引用 3 条法规",
+          "无匹配条款：拒答，置信度 0.18，线索可信度 −12",
+          "有匹配：置信度 min(0.88, 0.58 + 0.08×引用数)，线索可信度 +8"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/AiService.java:137-175"
+        ]
+      },
+      {
+        "title": "幂等与去重",
+        "lines": [
+          "监测记录按 企业+点位+污染物+时间 MERGE，重复采集不重复入库",
+          "线索使用 fingerprint 去重，避免同批次重复生成",
+          "数据包按 packageNo 幂等接收，重复投递返回既有回执"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/CollectService.java:138-150",
+          "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:240-266",
+          "backend/src/main/java/com/fixedsource/service/DataHubService.java:425-435"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "boundaries": [
+      {
+        "title": "采集触发方式",
+        "text": "README 描述“每日采集”，但代码中只发现 @EnableScheduling，未发现 @Scheduled 任务；当前采集由 POST /api/collect-batches 或页面按钮触发。若答辩需要“每日自动采集”，需要补调度器。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/FixedSourceApplication.java:8",
+          "backend/src/main/java/com/fixedsource/controller/CollectController.java:31-40"
+        ]
+      },
+      {
+        "title": "数据共享平台不是独立部署单元",
+        "text": "国家数据共享平台在当前原型中与业务后端同 JVM、共用 H2，通过 HTTP 自调用模拟跨平台对接；没有独立服务、消息队列或对象存储。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/resources/application-docker.yml:11-16",
+          "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:21-27"
+        ]
+      },
+      {
+        "title": "任务下发没有推送网关",
+        "text": "下发动作写 dispatch_outbox 并变更状态；H5 与 Android 通过轮询 /api/mobile/tasks 拉取。outbox 更多用于演示对账与重试，而不是可靠消息投递。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/TaskService.java:62-95",
+          "frontend/src/views/mobile/MobileTasks.vue:105"
+        ]
+      },
+      {
+        "title": "会话不持久化",
+        "text": "token 存在内存 ConcurrentHashMap，服务重启即失效；没有刷新 token、设备绑定或集中式会话存储。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/AuthService.java:15-56",
+          "backend/src/main/java/com/fixedsource/config/AuthInterceptor.java:44-70"
+        ]
+      },
+      {
+        "title": "AI 是确定性 mock RAG",
+        "text": "不调用外部大模型或向量库，法规片段只有 10 条；置信度与引用数量是确定性公式，适合离线演示，不代表真实模型效果。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/AiService.java:43-58",
+          "README.md:223"
+        ]
+      },
+      {
+        "title": "Android 运行验收待补",
+        "text": "源码与 Debug APK 已完成，但当前环境无模拟器/真机，相机、定位与 UI 运行验收仍需在真机补测。",
+        "confidence": "unknown",
+        "evidence": [
+          "README.md:389"
+        ]
+      },
+      {
+        "title": "单节点存储与明文链路",
+        "text": "H2 单文件库、本地上传目录、HTTP 明文与局域网演示；生产化需要 HTTPS、备份、对象存储、Token 刷新和更细权限。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/resources/application.yml:6-17",
+          "README.md:390-394"
+        ]
+      }
+    ]
+  }
+}

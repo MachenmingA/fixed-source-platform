@@ -1,0 +1,4176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230f766e'/%3E%3Ctext x='16' y='22' text-anchor='middle' font-size='16' fill='white'%3E%E5%87%80%3C/text%3E%3C/svg%3E">
+<title>净源智研 · 系统总体架构 | 当前状态</title>
+<style>
+  :root{
+    --ink:#132420;
+    --ink-2:#1d3a32;
+    --muted:#5f736c;
+    --muted-2:#84958f;
+    --line:#d8e3de;
+    --line-2:#e7eeea;
+    --paper:#eef2ee;
+    --card:#ffffff;
+    --green:#0f766e;
+    --green-deep:#0b3d34;
+    --teal:#0e7490;
+    --amber:#b45309;
+    --rose:#be123c;
+    --indigo:#4338ca;
+    --slate:#64748b;
+    --lime:#84cc16;
+    --shadow:0 12px 34px rgba(19,36,32,.10);
+    --shadow-soft:0 4px 18px rgba(19,36,32,.06);
+    --sans:"Source Han Sans SC","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    --serif:"Source Han Serif SC","Noto Serif CJK SC","Songti SC",Georgia,serif;
+    --mono:"Cascadia Mono","JetBrains Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--sans);
+    color:var(--ink);
+    background:var(--paper);
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+  button,input{font-family:inherit}
+  button{cursor:pointer}
+  ::selection{background:#bdebe0;color:#0b3d34}
+
+  /* ---------- header ---------- */
+  .app-header{
+    position:relative;
+    height:78px;
+    padding:0 26px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:24px;
+    color:#ecfdf7;
+    background:
+      radial-gradient(900px 240px at 12% -40%, rgba(20,184,166,.38), transparent 62%),
+      radial-gradient(700px 220px at 88% 150%, rgba(132,204,22,.20), transparent 60%),
+      linear-gradient(100deg,#0a211c 0%,#0d3028 54%,#0b2a23 100%);
+    overflow:hidden;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+  .app-header::before{
+    content:"";
+    position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:34px 34px;
+    mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);
+    pointer-events:none;
+  }
+  .brand{position:relative;display:flex;align-items:center;gap:16px;min-width:0}
+  .seal{
+    width:52px;height:52px;flex:0 0 52px;
+    border-radius:15px;
+    display:grid;place-items:center;
+    font-family:var(--serif);
+    font-size:27px;font-weight:700;color:#f4fffb;
+    background:linear-gradient(145deg,#14b8a6 0%,#0f766e 58%,#3f6212 130%);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.24),0 10px 24px rgba(0,0,0,.22);
+    letter-spacing:-1px;
+  }
+  .brand-text{min-width:0}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:9.5px;
+    letter-spacing:.18em;
+    color:#8fd9c8;
+    text-transform:uppercase;
+    margin-bottom:5px;
+    white-space:nowrap;
+  }
+  .brand h1{
+    margin:0;
+    font-family:var(--serif);
+    font-size:22px;
+    line-height:1.18;
+    font-weight:700;
+    letter-spacing:.02em;
+    white-space:nowrap;
+  }
+  .header-meta{
+    position:relative;
+    display:flex;align-items:center;gap:14px;
+    font-size:11px;color:#a7d7ca;
+    white-space:nowrap;
+  }
+  .header-meta .meta-pill{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:7px 11px;
+    border:1px solid rgba(255,255,255,.14);
+    border-radius:999px;
+    background:rgba(255,255,255,.055);
+  }
+  .header-meta .meta-pill b{color:#ecfdf7;font-weight:600}
+  .pulse{width:6px;height:6px;border-radius:50%;background:#4ade80;box-shadow:0 0 0 4px rgba(74,222,128,.14)}
+
+  /* ---------- tab bar ---------- */
+  .tabbar{
+    position:relative;z-index:20;
+    height:58px;
+    display:flex;align-items:center;justify-content:space-between;gap:18px;
+    padding:0 22px;
+    background:rgba(255,255,255,.92);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(10px);
+  }
+  .tabs{display:flex;align-items:center;gap:6px;min-width:0;overflow:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{
+    flex:0 0 auto;
+    display:flex;align-items:center;gap:9px;
+    height:36px;padding:0 13px;
+    border:1px solid transparent;border-radius:10px;
+    background:transparent;color:#47625a;
+    font-size:12.5px;font-weight:600;
+    transition:background .18s ease,color .18s ease,border-color .18s ease;
+    white-space:nowrap;
+  }
+  .tab .tab-no{font-family:var(--mono);font-size:9.5px;color:#93a69f;letter-spacing:.06em}
+  .tab .tab-level{
+    font-family:var(--mono);font-size:8.5px;letter-spacing:.08em;
+    padding:2px 5px;border-radius:4px;color:#71877f;background:#f1f5f2;border:1px solid #e1eae5;
+  }
+  .tab:hover{background:#f2f7f4;color:var(--green-deep)}
+  .tab.active{background:var(--green-deep);color:#f0fdf9;border-color:var(--green-deep);box-shadow:0 6px 16px rgba(11,61,52,.18)}
+  .tab.active .tab-no{color:#86efac}
+  .tab.active .tab-level{color:#c7f9ec;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.16)}
+  .tools{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+  .search{
+    display:flex;align-items:center;gap:8px;
+    height:34px;padding:0 10px;
+    border:1px solid var(--line);border-radius:9px;background:#fbfdfc;
+    color:#7b8f88;
+    transition:border-color .18s ease,box-shadow .18s ease,width .18s ease;
+    width:224px;
+  }
+  .search:focus-within{border-color:#93c9bd;box-shadow:0 0 0 3px rgba(15,118,110,.09);background:#fff}
+  .search svg{flex:0 0 14px;opacity:.72}
+  .search input{border:0;outline:0;background:transparent;min-width:0;width:100%;font-size:11.5px;color:var(--ink)}
+  .search input::placeholder{color:#9aaba4}
+  .search-count{font-family:var(--mono);font-size:9px;color:#82958e;white-space:nowrap}
+  .tool-btn{
+    height:34px;padding:0 11px;
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--line);border-radius:9px;
+    background:#fff;color:#415c54;
+    font-size:11.5px;font-weight:600;
+    transition:background .18s ease,border-color .18s ease,color .18s ease;
+  }
+  .tool-btn:hover{background:#f3f8f5;border-color:#bcd8d0;color:var(--green-deep)}
+  .tool-btn svg{opacity:.72}
+  .tool-btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+  .tool-btn.primary:hover{background:#0d665f;border-color:#0d665f}
+
+  /* ---------- workspace ---------- */
+  #workspace{position:relative}
+  .view{display:none}
+  .map-view{height:calc(100vh - 136px);min-height:560px;flex-direction:column}
+  .map-view.active{display:flex}
+  .scroll-view{height:calc(100vh - 136px);overflow:auto}
+  .scroll-view.active{display:block}
+
+  .view-head{
+    flex:0 0 auto;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:30px;
+    padding:16px 28px 15px;
+    background:linear-gradient(180deg,#fbfdfc 0%,#f7faf8 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .head-left{min-width:0}
+  .kicker{
+    display:flex;align-items:center;gap:9px;
+    font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:#779088;
+    text-transform:uppercase;margin-bottom:7px;
+  }
+  .level-pill{
+    display:inline-flex;align-items:center;height:19px;padding:0 7px;
+    border-radius:5px;background:#e6f4ef;border:1px solid #cfe8df;
+    color:var(--green);font-weight:700;font-size:9px;letter-spacing:.06em;
+  }
+  .view-head h2{
+    margin:0 0 5px;
+    font-family:var(--serif);
+    font-size:21px;line-height:1.25;font-weight:700;letter-spacing:.01em;color:#132a23;
+  }
+  .view-head p{
+    margin:0;max-width:1120px;
+    font-size:11.5px;line-height:1.65;color:#60756d;
+  }
+  .head-stats{display:flex;align-items:center;gap:8px;flex:0 0 auto;padding-bottom:2px}
+  .stat{
+    min-width:76px;padding:8px 11px;
+    border:1px solid var(--line);border-radius:10px;background:#fff;
+    text-align:center;
+  }
+  .stat b{display:block;font-family:var(--mono);font-size:17px;line-height:1;color:var(--green-deep);letter-spacing:-.02em}
+  .stat span{display:block;margin-top:5px;font-size:9.5px;color:#82958e;letter-spacing:.04em}
+
+  /* ---------- stage ---------- */
+  .stage{
+    position:relative;flex:1;min-height:0;overflow:hidden;
+    background:
+      radial-gradient(1100px 520px at 50% -15%,rgba(20,184,166,.08),transparent 64%),
+      radial-gradient(900px 520px at 100% 110%,rgba(67,56,202,.045),transparent 62%),
+      var(--paper);
+    cursor:grab;
+    touch-action:none;
+  }
+  .stage::before{
+    content:"";
+    position:absolute;inset:0;
+    background-image:radial-gradient(rgba(19,36,32,.13) 1px,transparent 1px);
+    background-size:22px 22px;
+    opacity:.34;
+    pointer-events:none;
+  }
+  .stage.dragging{cursor:grabbing}
+  .stage svg{position:absolute;inset:0;z-index:1;display:block;width:100%;height:100%;user-select:none}
+  .stage svg text{user-select:none;-webkit-user-select:none}
+
+  .legend-card{
+    position:absolute;z-index:3;left:18px;bottom:16px;
+    display:flex;flex-direction:column;gap:7px;
+    padding:11px 13px;
+    background:rgba(255,255,255,.93);
+    border:1px solid rgba(210,224,218,.95);
+    border-radius:12px;
+    box-shadow:var(--shadow-soft);
+    backdrop-filter:blur(8px);
+    font-size:9.5px;color:#5b7169;
+    pointer-events:none;
+  }
+  .legend-row{display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .legend-row b{font-weight:600;color:#354f47;margin-right:2px}
+  .cdot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-left:7px}
+  .cdot:first-child{margin-left:0}
+  .cdot.high{background:#0f766e}
+  .cdot.medium{background:#b45309}
+  .cdot.low{background:#be123c}
+  .lline{display:inline-block;width:18px;height:0;border-top:1.6px solid #0f766e;margin-left:7px}
+  .lline:first-child{margin-left:0}
+  .lline.dashed{border-top-style:dashed;border-color:#64748b}
+  .legend-note{padding-top:6px;border-top:1px dashed #dfe8e4;color:#8a9a94;font-size:9px}
+
+  .zoom{
+    position:absolute;z-index:3;right:18px;bottom:16px;
+    display:flex;align-items:center;gap:4px;
+    padding:5px;
+    background:rgba(255,255,255,.94);
+    border:1px solid rgba(210,224,218,.95);
+    border-radius:11px;
+    box-shadow:var(--shadow-soft);
+    backdrop-filter:blur(8px);
+  }
+  .zoom button{
+    width:28px;height:28px;display:grid;place-items:center;
+    border:0;border-radius:7px;background:transparent;color:#436159;
+    font-size:15px;line-height:1;
+  }
+  .zoom button:hover{background:#eef6f2;color:var(--green-deep)}
+  .zoom .zoom-label{
+    min-width:42px;text-align:center;
+    font-family:var(--mono);font-size:9.5px;color:#5c7169;
+  }
+  .zoom .fit{width:auto;padding:0 9px;font-size:10px;font-weight:600;letter-spacing:.02em}
+
+  /* ---------- svg interaction ---------- */
+  .node{cursor:pointer;transition:opacity .18s ease}
+  .node .card{transition:filter .18s ease,stroke .18s ease}
+  .node:hover .card{filter:drop-shadow(0 6px 14px rgba(19,36,32,.16))}
+  .node.selected .card{stroke-width:2.2}
+  .boundary.selected > rect:first-child{stroke-width:2.8}
+  .boundary{cursor:pointer}
+  .edge{cursor:pointer}
+  .edge .edge-line{transition:stroke-width .18s ease,opacity .18s ease}
+  .edge:hover .edge-line{stroke-width:2.8}
+  .node.dim,.edge.dim{opacity:.16}
+  .node.hl .card{filter:drop-shadow(0 8px 18px rgba(15,118,110,.20))}
+  .edge.hl .edge-line{stroke-width:2.8}
+  .node.search-hit .card{stroke:#f59e0b;stroke-width:2.4;filter:drop-shadow(0 0 10px rgba(245,158,11,.30))}
+  .node.search-miss{opacity:.16}
+  .flow-step.search-hit,.domain-card.search-hit,.algo-card.search-hit{border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.13)}
+  .flow-step.search-miss,.domain-card.search-miss,.algo-card.search-miss{opacity:.22}
+  .node.flash .card{animation:flash 1.3s ease}
+  @keyframes flash{0%,100%{filter:none}20%,60%{filter:drop-shadow(0 0 16px rgba(245,158,11,.75))}}
+
+  /* ---------- drawer ---------- */
+  .drawer{
+    position:fixed;z-index:80;top:0;right:0;bottom:0;
+    width:450px;max-width:100vw;
+    display:flex;flex-direction:column;
+    background:#fff;
+    border-left:1px solid var(--line);
+    box-shadow:-24px 0 60px rgba(19,36,32,.16);
+    transform:translateX(105%);
+    transition:transform .28s cubic-bezier(.22,.7,.3,1);
+  }
+  .drawer.open{transform:translateX(0)}
+  .drawer-top{
+    flex:0 0 auto;
+    display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+    padding:18px 20px 14px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#fbfdfc,#f6faf8);
+  }
+  .drawer-kind{font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:#7c918a;text-transform:uppercase;margin-bottom:6px}
+  .drawer h2{margin:0;font-family:var(--serif);font-size:20px;line-height:1.3;font-weight:700;color:#122a22}
+  .icon-btn{
+    flex:0 0 30px;width:30px;height:30px;
+    display:grid;place-items:center;
+    border:1px solid var(--line);border-radius:8px;background:#fff;color:#61766f;
+    font-size:17px;line-height:1;
+  }
+  .icon-btn:hover{background:#f1f7f4;color:#203f36}
+  .drawer-body{flex:1;overflow:auto;padding:18px 20px 28px}
+  .badge-row{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 14px}
+  .badge{
+    display:inline-flex;align-items:center;gap:5px;
+    padding:4px 8px;border-radius:6px;
+    border:1px solid #e0e9e5;background:#f8fbf9;
+    font-size:9.5px;font-weight:600;color:#536b63;
+  }
+  .badge.conf-high{border-color:#c3e8df;background:#eefaf6;color:#0f766e}
+  .badge.conf-medium{border-color:#f0d9bd;background:#fff8ed;color:#a14a06}
+  .badge.conf-low{border-color:#f3c9d3;background:#fff5f7;color:#b01238}
+  .badge.conf-unknown{border-color:#d8dedb;background:#f7f9f8;color:#5b6d67}
+  .lede{margin:0 0 18px;font-size:12px;line-height:1.78;color:#415a52}
+  .drawer-section{padding-top:15px;margin-top:15px;border-top:1px solid var(--line-2)}
+  .drawer-section h3{
+    margin:0 0 9px;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:#81958e;font-family:var(--mono);font-weight:600;
+  }
+  .drawer-section ul{margin:0;padding-left:16px}
+  .drawer-section li{font-size:11.5px;line-height:1.72;color:#435d54;margin:0 0 5px}
+  .chips{display:flex;flex-wrap:wrap;gap:5px}
+  .chip{
+    display:inline-flex;align-items:center;
+    padding:4px 8px;border-radius:6px;
+    background:#f2f7f4;border:1px solid #dfeae5;
+    font-family:var(--mono);font-size:9.5px;color:#38594f;
+  }
+  .evidence{list-style:none;padding:0!important;margin:0}
+  .evidence li{
+    display:flex;align-items:flex-start;gap:7px;
+    padding:7px 8px;margin:0 0 4px;
+    background:#f8fbf9;border:1px solid #e7efeb;border-radius:7px;
+    font-family:var(--mono);font-size:9px;line-height:1.5;color:#3f5b51;
+    cursor:copy;word-break:break-all;
+  }
+  .evidence li:hover{background:#f1f8f5;border-color:#cfe5dd}
+  .evidence li::before{content:"›";color:#92b0a6;flex:0 0 auto}
+  .ev-path{word-break:break-all;min-width:0}
+  .ev-line{flex:0 0 auto;white-space:nowrap;color:#8a9b95}
+  .drawer-actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .drawer-actions button{
+    height:34px;padding:0 12px;border-radius:8px;
+    border:1px solid var(--line);background:#fff;color:#3d5a51;
+    font-size:11px;font-weight:600;
+  }
+  .drawer-actions button:hover{background:#f2f8f5;border-color:#bcd9d0}
+  .drawer-actions button.primary{background:var(--green);border-color:var(--green);color:#fff}
+  .drawer-actions button.primary:hover{background:#0d665f}
+  .empty-hint{font-size:11.5px;color:#81958e;line-height:1.7;margin:0}
+
+  /* ---------- flow view ---------- */
+  .scroll-body{max-width:1720px;margin:0 auto;padding:20px 28px 54px}
+  .flow-section{
+    background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:22px 24px 24px;margin-bottom:20px;
+    box-shadow:var(--shadow-soft);
+  }
+  .flow-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+  .flow-head h3{margin:0 0 5px;font-family:var(--serif);font-size:18px;color:#132a23}
+  .flow-head p{margin:0;font-size:11px;line-height:1.6;color:#70857d}
+  .flow-tag{
+    flex:0 0 auto;padding:5px 9px;border-radius:6px;
+    border:1px solid #d6e7e1;background:#f3faf7;
+    font-family:var(--mono);font-size:9px;letter-spacing:.06em;color:#0f766e;
+  }
+  .flow-row{display:flex;gap:34px;align-items:stretch}
+  .flow-step{
+    position:relative;flex:1 1 0;min-width:0;
+    display:flex;flex-direction:column;
+    padding:15px 15px 13px;
+    border:1px solid #dfe9e4;border-radius:14px;
+    background:linear-gradient(180deg,#fff 0%,#fbfdfc 100%);
+    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    cursor:pointer;
+  }
+  .flow-step:hover{transform:translateY(-2px);border-color:#b9d8ce;box-shadow:0 10px 24px rgba(19,36,32,.09)}
+  .flow-step:not(:last-child)::after{
+    content:"";position:absolute;right:-25px;top:50%;
+    width:12px;height:12px;
+    border-top:1.6px solid #a8c0b8;border-right:1.6px solid #a8c0b8;
+    transform:translateY(-50%) rotate(45deg);
+  }
+  .step-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+  .step-no{
+    width:27px;height:27px;display:grid;place-items:center;
+    border-radius:8px;background:#0b3d34;color:#d1fae5;
+    font-family:var(--mono);font-size:10.5px;font-weight:700;
+  }
+  .lane{
+    padding:3px 7px;border-radius:5px;
+    font-size:9px;font-weight:600;letter-spacing:.03em;
+    border:1px solid transparent;white-space:nowrap;
+  }
+  .lane-teal{background:#e9f8f4;border-color:#c9ebe2;color:#0f766e}
+  .lane-amber{background:#fff7e8;border-color:#f1dfbf;color:#a14a06}
+  .lane-rose{background:#fff2f5;border-color:#f3cdd7;color:#b01238}
+  .lane-green{background:#eef8ec;border-color:#d5eac9;color:#3f6212}
+  .lane-indigo{background:#f0f0ff;border-color:#dcdcf7;color:#4338ca}
+  .lane-slate{background:#f3f6f8;border-color:#dde5ea;color:#4b5f6c}
+  .lane-blue{background:#edf6fd;border-color:#cee4f5;color:#0e7490}
+  .flow-step h4{margin:0 0 7px;font-size:13.5px;line-height:1.35;color:#172f28;font-weight:650}
+  .flow-step p{margin:0 0 10px;font-size:10.5px;line-height:1.68;color:#647a72;flex:1}
+  .flow-step code{
+    display:block;padding:6px 8px;border-radius:6px;
+    background:#f4f8f6;border:1px solid #e6eeea;
+    font-family:var(--mono);font-size:8.8px;line-height:1.45;color:#45635a;
+    word-break:break-all;
+  }
+  .step-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:9px;border-top:1px dashed #e2ebe7}
+  .step-foot .conf{font-size:8.5px;font-weight:600}
+  .step-foot .conf::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;margin-right:4px;vertical-align:1px}
+  .conf.high{color:#0f766e}.conf.high::before{background:#0f766e}
+  .conf.medium{color:#a14a06}.conf.medium::before{background:#b45309}
+  .conf.low{color:#b01238}.conf.low::before{background:#be123c}
+  .conf.unknown{color:#5b6d67}.conf.unknown::before{background:#64748b}
+  .step-foot .more{font-size:8.5px;color:#7c918a;letter-spacing:.02em}
+  .flow-turn{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    height:34px;color:#93a69f;font-size:8.5px;letter-spacing:.1em;
+  }
+  .flow-turn::before,.flow-turn::after{content:"";height:1px;width:80px;background:linear-gradient(90deg,transparent,#cfdfd8)}
+  .flow-turn::after{background:linear-gradient(90deg,#cfdfd8,transparent)}
+  .flow-turn span{display:flex;align-items:center;gap:5px;font-family:var(--mono)}
+
+  .track-panel{
+    background:#fff;border:1px solid var(--line);border-radius:18px;
+    padding:20px 24px;box-shadow:var(--shadow-soft);
+  }
+  .track-panel h3{margin:0 0 14px;font-family:var(--serif);font-size:16px;color:#132a23}
+  .track{display:grid;grid-template-columns:110px minmax(0,1fr) 260px;gap:18px;align-items:center;padding:11px 0;border-top:1px dashed #e2ebe7}
+  .track:first-of-type{border-top:0;padding-top:0}
+  .track-name{font-size:10px;font-weight:700;color:#3d5a51;letter-spacing:.04em}
+  .track-states{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
+  .state{
+    padding:4px 8px;border-radius:5px;
+    background:#f4f8f6;border:1px solid #e0eae5;
+    font-family:var(--mono);font-size:8.8px;color:#3d5a51;letter-spacing:.02em;
+  }
+  .state.terminal{background:#eef8f4;border-color:#c7e8df;color:#0f766e}
+  .track-arrow{color:#a3b7b0;font-size:10px}
+  .track-note{font-size:9.5px;line-height:1.55;color:#81958e}
+
+  /* ---------- data view ---------- */
+  .domain-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+  .domain-card{
+    display:flex;flex-direction:column;
+    background:#fff;border:1px solid var(--line);border-radius:16px;
+    padding:18px 18px 14px;
+    box-shadow:var(--shadow-soft);
+    transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;
+    cursor:pointer;
+  }
+  .domain-card:hover{border-color:#b9d8ce;box-shadow:0 10px 26px rgba(19,36,32,.09);transform:translateY(-2px)}
+  .domain-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px}
+  .domain-head h3{margin:0;font-family:var(--serif);font-size:16px;color:#132a23}
+  .domain-head .count{display:block;margin-top:4px;font-family:var(--mono);font-size:8.5px;color:#8a9b95;letter-spacing:.06em}
+  .tone-dot{width:10px;height:10px;border-radius:3px;flex:0 0 10px;margin-top:4px}
+  .tone-green .tone-dot{background:#0f766e}.tone-teal .tone-dot{background:#0e7490}
+  .tone-blue .tone-dot{background:#2563eb}.tone-amber .tone-dot{background:#b45309}
+  .tone-rose .tone-dot{background:#be123c}.tone-indigo .tone-dot{background:#4338ca}
+  .table-list{list-style:none;margin:0 0 12px;padding:0;flex:1}
+  .table-list li{display:grid;grid-template-columns:128px minmax(0,1fr);gap:9px;padding:6px 0;border-top:1px dashed #e7eeea;align-items:baseline}
+  .table-list li:first-child{border-top:0}
+  .table-list code{font-family:var(--mono);font-size:8.8px;color:#294f45;background:#f3f8f5;border:1px solid #e3ede8;padding:2px 4px;border-radius:4px;word-break:break-all;justify-self:start}
+  .table-list span{font-size:9.5px;line-height:1.5;color:#6d817a}
+  .domain-key{padding:9px 10px;border-radius:8px;background:#f7faf8;border:1px solid #e6eeea;font-size:9.5px;line-height:1.55;color:#4d675e}
+  .domain-foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;font-size:8.5px;color:#8a9b95}
+  .algo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:16px}
+  .algo-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-soft);cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease}
+  .algo-card:hover{border-color:#b9d8ce;box-shadow:0 10px 26px rgba(19,36,32,.09)}
+  .algo-card h3{margin:0 0 10px;font-family:var(--serif);font-size:15px;color:#132a23;display:flex;align-items:center;gap:8px}
+  .algo-card h3::before{content:"";width:7px;height:7px;border-radius:2px;background:var(--green);flex:0 0 7px}
+  .algo-card ul{margin:0;padding-left:16px}
+  .algo-card li{font-size:10.5px;line-height:1.7;color:#5c736a;margin-bottom:4px}
+  .algo-card code{font-family:var(--mono);font-size:9px;background:#f3f8f5;padding:1px 4px;border-radius:3px;color:#2d584c}
+  .section-title{display:flex;align-items:baseline;gap:10px;margin:22px 0 12px}
+  .section-title h2{margin:0;font-family:var(--serif);font-size:18px;color:#132a23}
+  .section-title span{font-size:10px;color:#8a9b95}
+
+  /* ---------- modal ---------- */
+  .modal{
+    position:fixed;z-index:100;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    padding:26px;
+    background:rgba(9,26,22,.52);
+    backdrop-filter:blur(4px);
+    opacity:0;visibility:hidden;transition:opacity .2s ease,visibility .2s ease;
+  }
+  .modal.open{opacity:1;visibility:visible}
+  .modal-card{
+    width:min(860px,100%);max-height:86vh;display:flex;flex-direction:column;
+    background:#fff;border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.28);
+    overflow:hidden;
+    transform:translateY(10px);transition:transform .22s ease;
+  }
+  .modal.open .modal-card{transform:translateY(0)}
+  .modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:20px 22px 16px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fbfdfc,#f6faf8)}
+  .modal-head h2{margin:0 0 4px;font-family:var(--serif);font-size:21px;color:#132a23}
+  .modal-head p{margin:0;font-size:10.5px;color:#7b8f88}
+  .modal-body{overflow:auto;padding:20px 22px 26px}
+  .modal-body h3{margin:20px 0 8px;font-size:10px;font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;color:#81958e}
+  .modal-body h3:first-child{margin-top:0}
+  .modal-body p,.modal-body li{font-size:11.5px;line-height:1.75;color:#435d54}
+  .modal-body ul{margin:0;padding-left:17px}
+  .modal-body code{font-family:var(--mono);font-size:9.5px;background:#f2f7f4;border:1px solid #e3ede8;padding:1px 4px;border-radius:3px;color:#2d584c}
+  .note-item{padding:11px 13px;border:1px solid #e4ece8;border-radius:10px;background:#f9fbfa;margin-bottom:8px}
+  .note-item .note-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+  .note-item b{font-size:11.5px;color:#27463c}
+  .note-item p{margin:0;font-size:10.5px;line-height:1.7;color:#657b73}
+  .note-item .badge{font-size:8.5px;padding:3px 6px}
+  .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 20px}
+
+  /* ---------- toast ---------- */
+  .toast{
+    position:fixed;z-index:120;left:50%;bottom:26px;
+    transform:translate(-50%,20px);
+    padding:10px 15px;border-radius:9px;
+    background:rgba(11,61,52,.94);color:#e9fdf7;
+    font-size:11px;letter-spacing:.02em;
+    box-shadow:0 12px 30px rgba(0,0,0,.2);
+    opacity:0;visibility:hidden;transition:all .22s ease;
+    pointer-events:none;
+  }
+  .toast.show{opacity:1;visibility:visible;transform:translate(-50%,0)}
+
+  .mobile-hint{display:none;position:absolute;z-index:3;left:12px;top:12px;padding:6px 9px;border-radius:7px;background:rgba(255,255,255,.92);border:1px solid #d6e4de;font-size:9px;color:#5f736c;box-shadow:var(--shadow-soft);pointer-events:none}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1240px){
+    .header-meta{display:none}
+    .search{width:180px}
+    .domain-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .flow-row{flex-wrap:wrap}
+    .flow-step{flex:1 1 calc(50% - 34px)}
+    .flow-step::after{display:none}
+    .track{grid-template-columns:90px minmax(0,1fr)}
+    .track-note{grid-column:1/-1;padding-left:108px}
+  }
+  @media (max-width:900px){
+    .app-header{height:auto;min-height:72px;padding:12px 16px}
+    .brand h1{font-size:18px;white-space:normal}
+    .seal{width:44px;height:44px;flex-basis:44px;font-size:23px}
+    .eyebrow{font-size:8px}
+    .tabbar{height:auto;padding:9px 12px;gap:10px;flex-wrap:wrap}
+    .tabs{order:2;width:100%}
+    .tools{order:1;width:100%;justify-content:flex-end}
+    .search{flex:1;width:auto}
+    .map-view,.scroll-view{height:auto}
+    .map-view{min-height:0}
+    .stage{height:66vh;min-height:440px}
+    .view-head{padding:14px 16px}
+    .view-head h2{font-size:18px}
+    .view-head p{font-size:10.5px}
+    .head-stats{display:none}
+    .scroll-body{padding:14px 14px 40px}
+    .flow-row{display:block}
+    .flow-step{margin-bottom:12px}
+    .flow-step::after{display:none}
+    .flow-turn{height:22px}
+    .domain-grid,.algo-grid{grid-template-columns:1fr}
+    .track{grid-template-columns:1fr;gap:7px}
+    .track-note{padding-left:0}
+    .drawer{width:100%;top:auto;height:82vh;border-left:0;border-top:1px solid var(--line);border-radius:18px 18px 0 0;transform:translateY(105%)}
+    .drawer.open{transform:translateY(0)}
+    .legend-card{display:none}
+    .zoom{right:12px;bottom:12px}
+    .mobile-hint{display:block}
+    .modal{padding:10px}
+    .grid-2{grid-template-columns:1fr}
+  }
+
+  /* ---------- print ---------- */
+  @page{size:A3 landscape;margin:9mm}
+  @media print{
+    body{background:#fff}
+    .app-header,.tabbar,.drawer,.modal,.toast,.legend-card,.zoom{display:none!important}
+    .view{display:none!important}
+    .view.active{display:block!important}
+    .map-view,.scroll-view{height:auto!important;overflow:visible!important}
+    .view-head{padding:0 0 6mm;border:0;background:#fff}
+    .view-head h2{font-size:16pt}
+    .view-head p{font-size:8pt;color:#444}
+    .head-stats{display:none}
+    .stage{height:auto!important;min-height:0!important;background:#fff;overflow:visible}
+    .stage::before{display:none}
+    .stage svg{position:static;width:100%;height:auto}
+    .scroll-body{padding:0}
+    .flow-section,.track-panel,.domain-card,.algo-card{box-shadow:none;break-inside:avoid}
+    .flow-section{page-break-inside:avoid}
+    .flow-step{cursor:default}
+  }
+</style>
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <div class="seal">净</div>
+    <div class="brand-text">
+      <div class="eyebrow">CURRENT-STATE ARCHITECTURE · <span id="meta-date">2026-10-22</span></div>
+      <h1>净源智研 · 系统总体架构</h1>
+    </div>
+  </div>
+  <div class="header-meta">
+    <span class="meta-pill"><span class="pulse"></span>当前状态 · 单机原型</span>
+    <span class="meta-pill"><b>L1 + L2</b> 架构视图</span>
+    <span class="meta-pill"><b id="evidence-count">—</b> 个证据引用</span>
+  </div>
+</header>
+
+<div class="tabbar">
+  <div class="tabs" id="tabs" role="tablist" aria-label="架构视图"></div>
+  <div class="tools">
+    <label class="search" title="搜索节点、模块、表名或流程步骤">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+      <input id="search" type="search" placeholder="搜索节点 / 模块 / 表名" autocomplete="off">
+      <span class="search-count" id="search-count"></span>
+    </label>
+    <button class="tool-btn" data-action="help" title="读图说明与已知边界">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 16v-5M12 8h.01"></path></svg>
+      说明
+    </button>
+    <button class="tool-btn" data-action="export" title="导出当前架构视图为 SVG">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"></path><path d="M4 21h16"></path></svg>
+      导出 SVG
+    </button>
+    <button class="tool-btn primary" data-action="print" title="打印当前视图">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="7" rx="1"></rect></svg>
+      打印
+    </button>
+  </div>
+</div>
+
+<main id="workspace"></main>
+
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="节点详情">
+  <div class="drawer-top">
+    <div>
+      <div class="drawer-kind" id="drawer-kind">NODE</div>
+      <h2 id="drawer-title">选择节点</h2>
+    </div>
+    <button class="icon-btn" data-close-drawer aria-label="关闭详情">×</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <p class="empty-hint">点击任意节点、连线或流程步骤，查看职责、技术协议、数据口径与证据来源。</p>
+  </div>
+</aside>
+
+<div class="modal" id="help-modal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal-head">
+      <div>
+        <h2 id="help-title">读图说明与已知边界</h2>
+        <p>当前状态架构 · 证据优先 · 模拟与推断显式标记</p>
+      </div>
+      <button class="icon-btn" data-close-help aria-label="关闭说明">×</button>
+    </div>
+    <div class="modal-body" id="help-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const MODEL = {
+  "meta": {
+    "system": "净源智研 · 固定污染源企业画像与 AI 辅助研判平台",
+    "repo": "fixed-source-platform",
+    "scope": "当前状态（current state）",
+    "levels": "L1 系统上下文 + L2 容器与模块 + 关键闭环 + 数据资产",
+    "generatedAt": "2026-10-22",
+    "audience": "毕业设计答辩、开发交接、后续架构演进",
+    "evidencePolicy": "节点与关系均标注 sourceRefs 与置信度；同进程模拟、推断和未知显式标记。",
+    "confidence": {
+      "high": "代码、配置、Schema 或运行清单直接支持",
+      "medium": "多处间接信号一致，或来自项目 README 的演示数据口径",
+      "low": "由命名、目录或业务惯例推断",
+      "unknown": "尚未验证，需要通过运行或真机确认"
+    },
+    "stats": {
+      "javaFiles": 44,
+      "controllers": 22,
+      "services": 13,
+      "tables": 25,
+      "pcRoutes": 15,
+      "mobileRoutes": 2,
+      "h2Tables": 25
+    }
+  },
+  "views": [
+    {
+      "id": "context",
+      "nav": "系统上下文",
+      "level": "L1",
+      "title": "谁在使用，系统与谁交换数据",
+      "caption": "四类业务角色通过 PC、H5、Android 使用平台；平台从模拟源取数，向模拟国家数据共享平台输出基础数据，并检索本地法规片段支撑研判。",
+      "width": 1680,
+      "height": 940,
+      "boundaries": [
+        {
+          "id": "system.platform",
+          "kind": "boundary",
+          "title": "净源智研平台",
+          "subtitle": "固定污染源企业画像与 AI 辅助研判系统",
+          "badge": "当前状态 · 单机原型",
+          "x": 430,
+          "y": 110,
+          "w": 700,
+          "h": 610,
+          "tone": "platform",
+          "summary": "当前原型的系统边界：一个 Vue 3 单页应用（PC + 移动 H5）、一个 Spring Boot 后端、一个 H2 文件数据库和本地上传目录。国家数据共享平台与模拟数据源在本原型中与业务后端同进程部署，但按逻辑边界单独建模。",
+          "items": [
+            "PC 工作台覆盖大屏、台账、事件、任务、采集、监测、规则、回测、报告与数据共享页面",
+            "移动 H5 与 PC 共用同一构建产物，Android 为独立的 Kotlin 原生端",
+            "业务后端同时承载模拟数据源、国家数据共享平台模拟模块与业务研判链路"
+          ],
+          "evidence": [
+            "README.md:9-14",
+            "README.md:308-312",
+            "docker-compose.yml:1-38",
+            "frontend/src/router.js:6-44"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "panels": [
+        {
+          "id": "panel.core",
+          "kind": "panel",
+          "title": "平台核心能力",
+          "x": 460,
+          "y": 290,
+          "w": 640,
+          "h": 260,
+          "footer": [
+            "同一个 Spring Boot 进程 · H2 文件库（25 张表） · 本地文件上传目录",
+            "主链路：采集 → 质量 → 规则 → AI → 事件/风险 → 任务 → 报告"
+          ]
+        }
+      ],
+      "nodes": [
+        {
+          "id": "actor.analyst",
+          "kind": "actor",
+          "title": "监测分析人员",
+          "subtitle": "analyst · 看画像、查证据、发起 AI 研判",
+          "badge": "analyst",
+          "x": 50,
+          "y": 150,
+          "w": 280,
+          "h": 86,
+          "summary": "负责企业画像、监测趋势和证据链查看；可以发起 AI 研判、手工标记线索，但不能修改企业台账。",
+          "items": [
+            "查看企业画像、风险分级、监测趋势与事件证据",
+            "对线索发起 AI 辅助研判，查看条款引用与拒答理由",
+            "在企业画像或事件工作台新增人工线索（source=MANUAL）"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:19",
+            "README.md:48",
+            "frontend/src/store.js:31-33"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.reviewer",
+          "kind": "actor",
+          "title": "审核人员",
+          "subtitle": "reviewer · 确认线索、处置事件、下发督办",
+          "badge": "reviewer",
+          "x": 50,
+          "y": 290,
+          "w": 280,
+          "h": 86,
+          "summary": "线索确认与撤销、事件拆分合并、核查任务创建下发督办关闭，以及企业台账与点位维护。",
+          "items": [
+            "确认 / 撤销线索，生成、拆分、合并异常事件",
+            "创建并下发核查任务，督办、关闭任务",
+            "维护企业主体、坐标、许可证和排口监测点"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:20",
+            "backend/src/main/java/com/fixedsource/controller/ClueController.java:81-104",
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175",
+            "README.md:49"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.inspector",
+          "kind": "actor",
+          "title": "现场核查人员",
+          "subtitle": "inspector · 接单、取证、反馈闭环",
+          "badge": "inspector",
+          "x": 50,
+          "y": 430,
+          "w": 280,
+          "h": 86,
+          "summary": "通过移动 H5 或 Android 原生端接收任务，现场拍照并叠加时间、地点、企业、点位水印，上传附件并提交反馈。",
+          "items": [
+            "拉取待办任务、接收任务",
+            "拍照 / 定位 / 附件上传，形成现场证据",
+            "提交反馈后由审核人员关闭任务"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:21",
+            "frontend/src/views/mobile/MobileTaskDetail.vue:153-240",
+            "android/app/src/main/java/com/fixedsource/mobile/util/WatermarkRenderer.kt",
+            "README.md:137"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.admin",
+          "kind": "actor",
+          "title": "系统管理员",
+          "subtitle": "admin · 规则、数据源、台账维护",
+          "badge": "admin",
+          "x": 50,
+          "y": 570,
+          "w": 280,
+          "h": 86,
+          "summary": "维护规则启停与阈值、数据源配置、企业台账和点位；可访问全部业务角色权限。",
+          "items": [
+            "规则配置、启停与版本维护",
+            "数据源配置与采集批次查看",
+            "企业台账、点位与用户可见的全部配置"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:22",
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:44-56",
+            "README.md:51"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "channel.web",
+          "kind": "chip",
+          "title": "Web PC 工作台",
+          "subtitle": "15 个业务路由 · 监管大屏",
+          "x": 480,
+          "y": 190,
+          "w": 180,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "container.spa"
+          },
+          "summary": "Vue 3 + Element Plus + ECharts，承载大屏、台账、事件、任务、采集、监测、规则、回测、报告与数据共享页面。",
+          "evidence": [
+            "frontend/src/router.js:6-29",
+            "frontend/package.json:10-17"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "channel.h5",
+          "kind": "chip",
+          "title": "移动 H5",
+          "subtitle": "/m/tasks · 免安装",
+          "x": 680,
+          "y": 190,
+          "w": 180,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "container.spa"
+          },
+          "summary": "与 PC 端共用同一 Vue 构建产物，通过 /m/tasks 路由提供任务列表、详情、接收、拍照水印与反馈。",
+          "evidence": [
+            "frontend/src/router.js:36-38",
+            "frontend/src/views/mobile/MobileTasks.vue:105",
+            "README.md:76-77"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "channel.android",
+          "kind": "chip",
+          "title": "Android 现场端",
+          "subtitle": "Kotlin · 相机水印 · 弱网缓存",
+          "x": 880,
+          "y": 190,
+          "w": 210,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "container.android"
+          },
+          "summary": "原生 Kotlin + Material 3，使用 OkHttp 直连后端 /api/mobile/*，支持任务缓存、相机取证、定位水印和附件上传。",
+          "evidence": [
+            "android/app/build.gradle.kts:18-36",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:57-72",
+            "README.md:137"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.collect",
+          "kind": "chip",
+          "title": "采集与质量",
+          "subtitle": "批次 · 完整率",
+          "x": 480,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.collect"
+          },
+          "summary": "按业务日期从模拟源拉取逐小时监测数据，写入监测记录并生成数据质量留痕。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:73-140"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.rules",
+          "kind": "chip",
+          "title": "规则引擎",
+          "subtitle": "R001–R005",
+          "x": 635,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.rules"
+          },
+          "summary": "五类阈值与一致性规则生成线索，保存证据快照与 fingerprint 去重。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.events",
+          "kind": "chip",
+          "title": "事件与风险",
+          "subtitle": "聚合 · P1–P3",
+          "x": 790,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.events"
+          },
+          "summary": "同企业、点位、污染物、相邻时段的线索聚合为事件，并计算企业风险分与 A/B/C/D 分级。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/EventRiskService.java:33-180"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.ai",
+          "kind": "chip",
+          "title": "AI 研判",
+          "subtitle": "引用 · 拒答",
+          "x": 945,
+          "y": 340,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.ai"
+          },
+          "summary": "本地 mock-rag 检索法规片段，输出解释、条款引用、核查建议、不确定性与置信度；无依据时拒答。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AiService.java:80-200",
+            "backend/src/main/resources/knowledge/regulations.json"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.tasks",
+          "kind": "chip",
+          "title": "任务闭环",
+          "subtitle": "outbox · 反馈",
+          "x": 480,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.tasks"
+          },
+          "summary": "确认线索后创建任务，写 dispatch_outbox 并变更状态；移动端拉取后接收、反馈、关闭。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.ledger",
+          "kind": "chip",
+          "title": "台账与画像",
+          "subtitle": "企业 · 监测",
+          "x": 635,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.ledger"
+          },
+          "summary": "企业主体与点位维护、风险画像、趋势、区域行业态势和监测数据分析。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/EnterpriseController.java:45-287",
+            "frontend/src/views/EnterpriseProfile.vue"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.bigscreen",
+          "kind": "chip",
+          "title": "大屏与地图",
+          "subtitle": "北京 GeoJSON",
+          "x": 790,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.ledger"
+          },
+          "summary": "首页监管大屏使用内置北京 16 区 GeoJSON，离线渲染，不依赖在线地图瓦片。",
+          "evidence": [
+            "frontend/src/components/BeijingRiskMap.vue:16-20",
+            "frontend/src/utils/beijingMap.js",
+            "README.md:99-104"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "chip.sharing",
+          "kind": "chip",
+          "title": "数据共享",
+          "subtitle": "目录 · HMAC",
+          "x": 945,
+          "y": 405,
+          "w": 135,
+          "h": 52,
+          "link": {
+            "view": "containers",
+            "id": "module.catalog"
+          },
+          "summary": "模拟国家数据共享平台的数据目录、打包发布、HMAC 投递、回执与开放拉取。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-530",
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "note.auth",
+          "kind": "note",
+          "title": "认证与会话边界",
+          "subtitle": "X-Token / Bearer · 内存 ConcurrentHashMap · 4 个业务角色 + datahub 服务账号",
+          "x": 480,
+          "y": 580,
+          "w": 610,
+          "h": 64,
+          "link": {
+            "view": "containers",
+            "id": "module.auth"
+          },
+          "summary": "登录后签发 UUID token 并存入内存 Map；AuthInterceptor 校验 X-Token 或 Bearer。服务重启会使会话失效。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:17-56",
+            "backend/src/main/java/com/fixedsource/config/AuthInterceptor.java:24-71"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "system.mock-source",
+          "kind": "external",
+          "title": "模拟监测数据源",
+          "subtitle": "10 家企业 · 20 个点位 · 6 类污染物 · 异常剧本",
+          "badge": "同进程 Mock",
+          "x": 1240,
+          "y": 130,
+          "w": 360,
+          "h": 104,
+          "summary": "MockSourceService 按日期生成逐小时监测数据，并内置超限、恒值、突变、状态不一致等异常剧本；通过 /mock-source/v1 暴露。演示库另有台账新增企业 E011 和 2 个点位。",
+          "items": [
+            "GET /mock-source/v1/base-data：企业、点位、污染物标准",
+            "GET /mock-source/v1/monitoring?bizDate=yyyy-MM-dd：逐小时监测记录",
+            "HTTP 采集失败时，CollectService 回退到同一契约的进程内生成器"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/MockSourceController.java:13-28",
+            "backend/src/main/java/com/fixedsource/service/MockSourceService.java:25-70",
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:112-125",
+            "README.md:79-86"
+          ],
+          "confidence": "high",
+          "footer": [
+            "同进程 Mock · 采集失败回退生成器"
+          ]
+        },
+        {
+          "id": "system.data-hub",
+          "kind": "external",
+          "title": "国家数据共享平台（模拟）",
+          "subtitle": "目录 · 打包 · 订阅 · HMAC 投递 · 回执 · 开放拉取",
+          "badge": "逻辑独立 · 同进程",
+          "x": 1240,
+          "y": 290,
+          "w": 360,
+          "h": 150,
+          "summary": "按独立平台建模：从业务平台标准数据服务出口取基础数据，封装为数据包，向 5 个模拟订阅方 HMAC 推送并接收回执，同时提供带 X-Open-Data-Key 的开放拉取接口。物理上与业务后端同 JVM、共用 H2。",
+          "items": [
+            "7 类基础数据集：企业、点位、污染物标准、逐时/逐日监测、重点排污单位、标准库",
+            "data_package / data_dispatch / data_receipt 记录发布、投递与回执",
+            "Docker 首次启动自动发布 7 个演示数据包"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-160",
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:21-80",
+            "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:26-65",
+            "backend/src/main/java/com/fixedsource/config/DataHubBootstrap.java:20-60",
+            "README.md:182"
+          ],
+          "confidence": "high",
+          "footer": [
+            "同 JVM · 共用 H2 · 5 个模拟订阅方"
+          ]
+        },
+        {
+          "id": "actor.subscribers",
+          "kind": "external",
+          "title": "订阅系统 ×5",
+          "subtitle": "npe / enf / city / open / edge · HMAC-SHA256",
+          "badge": "模拟接收端",
+          "x": 1240,
+          "y": 505,
+          "w": 360,
+          "h": 86,
+          "summary": "种子数据中的 5 个模拟订阅系统，各有 app_key / app_secret 与接收端点；由 MockConsumerController 接收并验签、写回执。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/db/SeedService.java:186-200",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:13-30",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:395-445"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.open-consumers",
+          "kind": "external",
+          "title": "开放数据消费者",
+          "subtitle": "X-Open-Data-Key · catalog / latest",
+          "badge": "开放接口",
+          "x": 1240,
+          "y": 616,
+          "w": 360,
+          "h": 86,
+          "summary": "通过独立 API Key 拉取开放数据目录与指定数据集最新数据包，不与业务平台用户 token 混用。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:15-55",
+            "backend/src/main/resources/application.yml:27-31"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "system.regulations",
+          "kind": "knowledge",
+          "title": "公开法规知识库",
+          "subtitle": "knowledge/regulations.json · 10 条法规片段",
+          "badge": "classpath · 本地",
+          "x": 1240,
+          "y": 750,
+          "w": 360,
+          "h": 104,
+          "summary": "本地 JSON 保存 10 条公开法规片段，带 law、clause、ruleCodes、pollutants 元数据；AiService 启动时加载，按规则编码与污染物匹配，最多引用 3 条。",
+          "items": [
+            "不依赖外部模型、向量库或网络，保证离线演示可复现",
+            "无匹配条款时输出拒答，并把线索可信度下调 12 分"
+          ],
+          "evidence": [
+            "backend/src/main/resources/knowledge/regulations.json:1-30",
+            "backend/src/main/java/com/fixedsource/service/AiService.java:43-58",
+            "backend/src/main/java/com/fixedsource/service/AiService.java:137-170"
+          ],
+          "confidence": "high",
+          "footer": [
+            "mock-rag-v1 · 无外部模型 / 向量库"
+          ]
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.analyst-platform",
+          "from": "actor.analyst",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.136
+          },
+          "label": "Web 端操作",
+          "protocol": "HTTP · X-Token",
+          "sync": "sync",
+          "summary": "查看画像、证据与监测数据，发起 AI 研判，手工标记线索。",
+          "evidence": [
+            "frontend/src/api.js:5-17",
+            "frontend/src/router.js:20-24"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.reviewer-platform",
+          "from": "actor.reviewer",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.366
+          },
+          "label": "审核 / 下发",
+          "protocol": "HTTP · X-Token",
+          "sync": "sync",
+          "summary": "确认线索、处置事件、创建与下发任务、督办关闭、维护台账。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/ClueController.java:81-104",
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:62-95"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.inspector-platform",
+          "from": "actor.inspector",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.595
+          },
+          "label": "H5 / Android",
+          "protocol": "HTTP · /api/mobile",
+          "sync": "sync",
+          "summary": "移动端轮询任务列表，接收任务，上传照片附件并提交反馈。",
+          "evidence": [
+            "frontend/src/views/mobile/MobileTasks.vue:105",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:57-90"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.admin-platform",
+          "from": "actor.admin",
+          "to": "system.platform",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.825
+          },
+          "label": "配置 / 台账",
+          "protocol": "HTTP · X-Token",
+          "sync": "sync",
+          "summary": "规则、数据源、企业台账与点位的配置维护。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/RuleController.java:24-33",
+            "backend/src/main/java/com/fixedsource/controller/DataSourceController.java:25-35"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.platform-mock",
+          "from": "system.platform",
+          "to": "system.mock-source",
+          "fromPort": {
+            "side": "r",
+            "at": 0.115
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "labelLines": [
+            "采集 HTTP",
+            "/mock-source/v1"
+          ],
+          "protocol": "HTTP · RestClient",
+          "sync": "sync",
+          "summary": "CollectService 按业务日期拉取监测数据；失败时回退到进程内生成器。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:86-125"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.platform-datahub",
+          "from": "system.platform",
+          "to": "system.data-hub",
+          "fromPort": {
+            "side": "r",
+            "at": 0.443
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.6
+          },
+          "labelLines": [
+            "基础数据出口",
+            "数据包投递"
+          ],
+          "protocol": "HTTP · 服务账号 X-Token",
+          "sync": "sync",
+          "summary": "数据平台通过 /api/data-service/v1/export/{datasetCode} 获取 7 类基础数据，再打包投递给订阅方；开放消费者通过独立 Key 拉取。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80",
+            "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:26-65"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.platform-regulations",
+          "from": "system.platform",
+          "to": "system.regulations",
+          "fromPort": {
+            "side": "b",
+            "at": 0.529
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "via": [
+            [
+              800,
+              760
+            ],
+            [
+              1200,
+              760
+            ],
+            [
+              1200,
+              792
+            ]
+          ],
+          "labelLines": [
+            "条款检索",
+            "本地 JSON"
+          ],
+          "protocol": "in-process",
+          "sync": "sync",
+          "summary": "AiService 启动时从 classpath 加载法规片段，研判时按 ruleCode + pollutant 匹配。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AiService.java:43-58",
+            "backend/src/main/java/com/fixedsource/service/AiService.java:137-150"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.datahub-subscribers",
+          "from": "system.data-hub",
+          "to": "actor.subscribers",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "t",
+            "at": 0.5
+          },
+          "labelLines": [
+            "HMAC-SHA256",
+            "推送 + 回执"
+          ],
+          "protocol": "HTTP POST · mock-consumer",
+          "sync": "sync",
+          "summary": "按订阅方 app_secret 计算签名，POST 到 /mock-consumer/v1/{system}/ingest；接收端校验 AppKey、时间戳、签名与 packageNo 幂等。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-520",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:395-445"
+          ],
+          "confidence": "high",
+          "both": true
+        },
+        {
+          "id": "e.open-datahub",
+          "from": "actor.open-consumers",
+          "to": "system.data-hub",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "r",
+            "at": 0.733
+          },
+          "via": [
+            [
+              1640,
+              659
+            ],
+            [
+              1640,
+              400
+            ]
+          ],
+          "labelLines": [
+            "开放拉取",
+            "独立 Key"
+          ],
+          "protocol": "HTTP GET · /open-data/v1",
+          "sync": "sync",
+          "summary": "开放消费者按独立 Key 拉取目录与最新数据包。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:30-55"
+          ],
+          "confidence": "high"
+        }
+      ]
+    },
+    {
+      "id": "containers",
+      "nav": "容器与模块",
+      "level": "L2",
+      "title": "一个 SPA、一个后端、一个文件库，以及逻辑独立的数据共享模块",
+      "caption": "Web PC 与移动 H5 共用同一 Vue 构建产物；Nginx 托管静态资源并反向代理。Spring Boot 后端承载业务模块、模拟数据源和模拟国家数据共享平台，H2 与上传目录落在 Docker volume。",
+      "width": 1720,
+      "height": 1000,
+      "boundaries": [
+        {
+          "id": "container.backend",
+          "kind": "boundary",
+          "title": "Spring Boot 后端",
+          "subtitle": "fixed-source-backend · 44 Java 文件 · 22 Controller",
+          "badge": "8080 · JRE 21",
+          "x": 510,
+          "y": 240,
+          "w": 720,
+          "h": 740,
+          "tone": "backend",
+          "summary": "单体 Spring Boot 应用：业务能力、模拟数据源、国家数据共享平台模拟模块和 Mock 接收端都在同一进程内，通过 Spring RestClient 做自调用和对外 HTTP 调用。",
+          "evidence": [
+            "backend/pom.xml:10-17",
+            "backend/Dockerfile:6-8",
+            "docker-compose.yml:2-22"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "container.datahub",
+          "kind": "boundary",
+          "title": "数据共享平台模块（模拟）",
+          "subtitle": "逻辑独立的国家平台边界",
+          "badge": "同进程 · 共用 H2",
+          "x": 540,
+          "y": 690,
+          "w": 660,
+          "h": 260,
+          "tone": "datahub",
+          "footer": [
+            "5 个订阅方 · HMAC-SHA256 · SHA-256 包哈希 · 回执幂等 · 失败重试",
+            "同一 JVM 内模拟跨平台对接，不是独立部署单元"
+          ],
+          "summary": "数据目录、打包发布、订阅投递、回执、开放拉取与 Mock 接收端。物理上与业务后端同进程，但按独立平台逻辑建模。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/DataHubController.java:19-110",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-530",
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "panels": [],
+      "nodes": [
+        {
+          "id": "container.spa",
+          "kind": "container",
+          "title": "Vue 3 单页应用",
+          "subtitle": "PC 工作台 + 移动 H5 · 同一构建产物",
+          "badge": "浏览器",
+          "x": 80,
+          "y": 90,
+          "w": 380,
+          "h": 130,
+          "tech": [
+            "Vue 3.4",
+            "Vite 5",
+            "Element Plus",
+            "ECharts",
+            "Axios"
+          ],
+          "summary": "15 个 PC 业务路由 + 2 个移动任务路由；Element Plus 提供组件，ECharts 渲染大屏和监测图表，内置北京 GeoJSON 离线地图。",
+          "items": [
+            "PC：大屏、区域态势、企业台账与画像、事件、任务、采集、监测、质量、规则、回测、测试数据、集成、数据共享、报告",
+            "移动 H5：/m/tasks 列表、/m/tasks/:taskNo 详情、接收、拍照水印与反馈",
+            "请求统一走 /api，拦截器附加 X-Token；401 自动清理会话并跳转登录"
+          ],
+          "evidence": [
+            "frontend/src/router.js:6-38",
+            "frontend/src/api.js:5-29",
+            "frontend/package.json:10-22",
+            "frontend/src/components/BeijingRiskMap.vue:16-20"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "container.android",
+          "kind": "container",
+          "title": "Android 现场核查端",
+          "subtitle": "Kotlin · Material 3 · 相机 / 定位水印",
+          "badge": "原生 App",
+          "x": 1340,
+          "y": 90,
+          "w": 300,
+          "h": 130,
+          "tech": [
+            "Kotlin",
+            "AGP 8.4.2",
+            "OkHttp",
+            "Gson",
+            "Coroutines"
+          ],
+          "summary": "独立原生客户端，直连后端 /api/mobile/*。默认服务地址为模拟器 10.0.2.2:8080，登录时可配置；支持任务缓存、相机取证、Canvas 水印、附件上传与 401 处理。",
+          "items": [
+            "12 个 Kotlin 源文件：登录、任务列表、任务详情、缓存、会话、定位、水印",
+            "AndroidManifest 声明网络、粗略/精确定位与明文流量（演示环境）",
+            "当前环境无模拟器/真机，相机与 UI 运行验收仍待补测（README 明示）"
+          ],
+          "evidence": [
+            "android/app/build.gradle.kts:18-36",
+            "android/app/src/main/AndroidManifest.xml:10-24",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:21-90",
+            "android/app/src/main/java/com/fixedsource/mobile/util/WatermarkRenderer.kt",
+            "README.md:296-303",
+            "README.md:389"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "container.nginx",
+          "kind": "container",
+          "title": "Nginx 静态站与反向代理",
+          "subtitle": "托管 dist 与 APK 下载，代理 API 与开放接口",
+          "badge": "8088 → 80",
+          "x": 80,
+          "y": 290,
+          "w": 380,
+          "h": 110,
+          "tech": [
+            "nginx:1.27-alpine",
+            "try_files → index.html",
+            "client_max_body_size 20m"
+          ],
+          "summary": "前端容器：托管 Vue 构建产物与 Android APK；把 /api、/open-data、/mock-consumer、/mock-source、/uploads 反向代理到 backend:8080。",
+          "items": [
+            "SPA 路由回退：try_files $uri $uri/ /index.html",
+            "/uploads 代理到后端文件接口，限制上传 20MB",
+            "Docker Compose 中依赖 backend 健康检查通过后启动"
+          ],
+          "evidence": [
+            "frontend/nginx.conf:1-42",
+            "frontend/Dockerfile:1-8",
+            "docker-compose.yml:24-36"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.auth",
+          "kind": "module",
+          "title": "认证与会话",
+          "subtitle": "X-Token · 内存会话 · 角色校验",
+          "x": 540,
+          "y": 330,
+          "w": 200,
+          "h": 74,
+          "summary": "4 个业务角色 + datahub 服务账号；登录签发 UUID token，存内存 ConcurrentHashMap；拦截器校验 X-Token 或 Bearer，控制器内做细粒度角色判断。",
+          "items": [
+            "admin 隐式拥有全部角色权限",
+            "服务重启使 token 全部失效",
+            "公开路径：登录、健康检查、mock-source、uploads、h2-console"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AuthService.java:17-56",
+            "backend/src/main/java/com/fixedsource/config/AuthInterceptor.java:24-71",
+            "backend/src/main/java/com/fixedsource/config/WebConfig.java"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.collect",
+          "kind": "module",
+          "title": "采集接入",
+          "subtitle": "批次 · HTTP 拉取 · 幂等",
+          "x": 770,
+          "y": 330,
+          "w": 200,
+          "h": 74,
+          "summary": "POST /api/collect-batches 触发：创建批次 → HTTP 拉取模拟源 → MERGE 监测记录 → 同步真值标签 → 记录数据质量 → 规则、AI、事件与风险 → 审计。代码中未发现 @Scheduled 定时任务。",
+          "items": [
+            "批次号 CB+时间戳+随机数；同业务日期可重跑",
+            "监测记录按企业+点位+污染物+时间 MERGE，天然幂等",
+            "采集失败回退到 MockSourceService 同契约生成器"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/CollectController.java:31-40",
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:73-140",
+            "backend/src/main/java/com/fixedsource/FixedSourceApplication.java:8",
+            "README.md:130"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.quality",
+          "kind": "module",
+          "title": "数据质量",
+          "subtitle": "缺失 / 异常 · 24h 完整率",
+          "x": 1000,
+          "y": 330,
+          "w": 200,
+          "h": 74,
+          "summary": "按点位、污染物、日期记录缺失与异常问题，计算每日完整率（应到 24 小时），支持汇总、明细、Top 点位与回填。",
+          "items": [
+            "data_quality_issue 保留问题类型、严重度、批次与日期",
+            "监测页与质量页共用口径：完整率 = 有效小时 / 24",
+            "回填区间用于历史演示数据"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataQualityService.java:25-92",
+            "backend/src/main/java/com/fixedsource/controller/DataQualityController.java:14-33"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.rules",
+          "kind": "module",
+          "title": "规则引擎",
+          "subtitle": "R001–R005 · 证据快照",
+          "x": 540,
+          "y": 420,
+          "w": 200,
+          "h": 74,
+          "summary": "按点位与污染物读取当日小时序列，执行启用的规则；命中后写 clue，保存触发值、阈值、时间范围、证据列表与 fingerprint 去重。",
+          "items": [
+            "R001 浓度超限：连续超限小时聚合，≥1.3×限值为 HIGH",
+            "R002 数据缺失：少于 22 小时；R003 连续恒值；R004 异常突变；R005 状态不一致",
+            "基础可信度按规则与严重度给出，后续可被 AI 引用覆盖调整"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:38-215",
+            "backend/src/main/java/com/fixedsource/db/SchemaService.java:83-122"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.events",
+          "kind": "module",
+          "title": "事件聚合与风险",
+          "subtitle": "P1–P3 · A/B/C/D · 拆分合并",
+          "x": 770,
+          "y": 420,
+          "w": 200,
+          "h": 74,
+          "summary": "同企业、排口、污染物、相邻时段的线索聚合为事件；按严重度与可信度定 P1/P2/P3；企业风险按 7 日事件、数据完整率与待办任务计算 A/B/C/D。",
+          "items": [
+            "P1：HIGH 且可信度 ≥65；P2：HIGH 或 MEDIUM 且 ≥55；其余 P3",
+            "风险分 = high×16 + medium×8 + low×3 + (100-完整率)×0.35 + 待办任务×4",
+            "事件状态由线索状态派生：PENDING / CONFIRMED / DISPATCHED / FEEDBACK / CLOSED"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/EventRiskService.java:33-180",
+            "backend/src/main/java/com/fixedsource/controller/EventController.java:15-54"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.ai",
+          "kind": "module",
+          "title": "AI 辅助研判",
+          "subtitle": "mock-rag · 引用 / 拒答",
+          "x": 1000,
+          "y": 420,
+          "w": 200,
+          "h": 74,
+          "summary": "按规则编码与污染物检索本地法规片段，生成解释、核查建议、条款引用与不确定性；无匹配时拒答，并把线索可信度下调 12 分。",
+          "items": [
+            "置信度：拒答 0.18；命中时 min(0.88, 0.58 + 0.08×引用数)",
+            "引用最多 3 条；命中后可信度 +8",
+            "确定性 mock RAG，不调用外部模型或网络"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/AiService.java:80-200",
+            "backend/src/main/resources/knowledge/regulations.json",
+            "README.md:223"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.tasks",
+          "kind": "module",
+          "title": "任务闭环",
+          "subtitle": "状态机 · outbox · 轮询",
+          "x": 540,
+          "y": 510,
+          "w": 200,
+          "h": 74,
+          "summary": "审核确认线索后创建任务；下发时写 dispatch_outbox、设置 external_no 与状态；移动端轮询 /api/mobile/tasks 拉取，接收、反馈、关闭；支持督办与重试对账。",
+          "items": [
+            "任务状态与线索状态分离，关闭时同步回写",
+            "下发是 outbox 记录 + 状态变更，没有独立推送网关",
+            "移动 H5 与 Android 共用 /api/mobile/*"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175",
+            "backend/src/main/java/com/fixedsource/controller/TaskController.java:24-92",
+            "frontend/src/views/mobile/MobileTasks.vue:105"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.ledger",
+          "kind": "module",
+          "title": "台账 · 画像 · 大屏",
+          "subtitle": "企业 / 点位 / 监测 / 态势",
+          "x": 770,
+          "y": 510,
+          "w": 200,
+          "h": 74,
+          "summary": "企业台账与排口监测点维护、企业风险画像、监测数据分析、区域/行业态势和首页监管大屏；地图使用内置 GeoJSON 离线渲染。",
+          "items": [
+            "台账维护写 audit_log；风险分只由规则、事件与反馈计算",
+            "监测页支持逐时曲线、日走势、24 小时画像、热力图与日汇总",
+            "大屏支持风险/密度/事件三种图层与区域、企业下钻"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/EnterpriseController.java:45-287",
+            "backend/src/main/java/com/fixedsource/controller/DashboardController.java:28",
+            "backend/src/main/java/com/fixedsource/controller/CockpitController.java:26",
+            "backend/src/main/java/com/fixedsource/controller/MonitoringController.java:32"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.ops",
+          "kind": "module",
+          "title": "回测 · 报告 · 测试数据",
+          "subtitle": "回测 · 报告 · 真值标签",
+          "x": 1000,
+          "y": 510,
+          "w": 200,
+          "h": 74,
+          "summary": "规则回测按规则+点位+污染物+日期统计命中；报告库生成可打印核查报告；测试数据页维护异常真值标签并支持 CSV 导出。",
+          "items": [
+            "backtest_run 保存回测区间、命中与指标",
+            "inspection_report 关联事件与任务，浏览器打印 / 导出 PDF",
+            "test_anomaly_label 与线索命中对照"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/BacktestService.java:31-150",
+            "backend/src/main/java/com/fixedsource/service/ReportService.java:28-199",
+            "backend/src/main/java/com/fixedsource/service/LabelService.java:22-50"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.export",
+          "kind": "module",
+          "title": "基础数据服务出口",
+          "subtitle": "7 类数据集 · 服务账号",
+          "x": 540,
+          "y": 600,
+          "w": 200,
+          "h": 74,
+          "summary": "业务平台向数据共享平台暴露的标准出口，只共享企业、点位、污染物标准、监测与公开名录等基础数据；规则、事件、风险、AI 和任务闭环不进入共享域。",
+          "items": [
+            "ENTERPRISE_MASTER / MONITOR_POINT_MASTER / POLLUTANT_STANDARD",
+            "MONITORING_HOURLY / MONITORING_DAILY",
+            "KEY_DISCHARGE_UNIT / STANDARD_LIBRARY"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:18-65",
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "note.runtime",
+          "kind": "note",
+          "title": "运行形态",
+          "subtitle": "单 JVM · 无消息队列 · 无外部模型 · 无在线地图瓦片",
+          "x": 770,
+          "y": 600,
+          "w": 430,
+          "h": 74,
+          "summary": "原型以可离线复现为目标：数据共享用 RestClient 自调用，任务下发用 outbox 表，AI 用本地 JSON 检索，地图用内置 GeoJSON。",
+          "evidence": [
+            "README.md:212-223",
+            "docker-compose.yml:1-38"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.catalog",
+          "kind": "module",
+          "title": "数据目录 / 打包发布",
+          "subtitle": "自调用出口 · SHA-256",
+          "x": 565,
+          "y": 770,
+          "w": 190,
+          "h": 80,
+          "summary": "读取开放目录，调用业务数据服务出口，封装 header + body 数据包，计算 payload hash，写 data_package，再逐个订阅方投递。",
+          "items": [
+            "包号 DP+时间戳；状态 PUBLISHED / DISTRIBUTED / PARTIAL / FAILED",
+            "Docker 首次启动自动发布 7 个演示包"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-160",
+            "backend/src/main/java/com/fixedsource/config/DataHubBootstrap.java:20-60"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.dispatch",
+          "kind": "module",
+          "title": "HMAC 投递 / 回执",
+          "subtitle": "5 订阅方 · 时间窗 · 幂等",
+          "x": 775,
+          "y": 770,
+          "w": 200,
+          "h": 80,
+          "summary": "用订阅方 secret 计算 HMAC-SHA256(timestamp + packageNo + sha256(body))，POST 到接收端；记录 HTTP 状态、延迟、签名与响应，失败可重试。",
+          "items": [
+            "请求头：X-DataHub-App-Key / Timestamp / Signature / Package-No",
+            "接收端校验 10 分钟时间窗与 packageNo 幂等",
+            "data_dispatch 状态 SENT / FAILED，retry_count 可追踪"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-530",
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:672-680"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "module.opendata",
+          "kind": "module",
+          "title": "开放拉取 / Mock 接收",
+          "subtitle": "开放 Key · Mock 接收",
+          "x": 995,
+          "y": 770,
+          "w": 180,
+          "h": 80,
+          "summary": "开放接口以独立 X-Open-Data-Key 提供 catalog 与 latest；MockConsumerController 模拟订阅方接收并验签、写回执。",
+          "items": [
+            "开放 Key 与业务 token 分离",
+            "接收回执包含 receiptNo、packageNo、validation=HMAC-SHA256"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:13-30"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "store.h2",
+          "kind": "store",
+          "title": "H2 文件数据库",
+          "subtitle": "jdbc:h2:file:/app/data/fixedsource · MODE=MySQL",
+          "badge": "25 张表",
+          "x": 1300,
+          "y": 250,
+          "w": 340,
+          "h": 400,
+          "lines": [
+            [
+              "基础主数据",
+              "enterprise · monitor_point · pollutant · public_reference_item"
+            ],
+            [
+              "监测与采集",
+              "monitoring_record · collect_batch · data_quality_issue · data_source_config"
+            ],
+            [
+              "规则与线索",
+              "rule_config · clue · test_anomaly_label · backtest_run"
+            ],
+            [
+              "事件与研判",
+              "abnormal_event · risk_snapshot · ai_assessment"
+            ],
+            [
+              "任务与报告",
+              "inspection_task · task_feedback · inspection_report · dispatch_outbox · audit_log"
+            ],
+            [
+              "数据共享",
+              "data_catalog · data_subscriber · data_package · data_dispatch · data_receipt"
+            ]
+          ],
+          "summary": "单文件 H2 数据库，SchemaService 启动时建表，DataInitializer 执行种子与补充数据；Docker 下挂载 fixed-source-data volume。",
+          "items": [
+            "25 张表，覆盖主数据、监测、规则、事件、任务与共享域",
+            "MODE=MySQL 兼容语法；无 ORM，直接 JdbcTemplate",
+            "单节点文件库，无备份与高可用，适合演示"
+          ],
+          "evidence": [
+            "backend/src/main/resources/application.yml:6-13",
+            "backend/src/main/resources/application-docker.yml:1-10",
+            "backend/src/main/java/com/fixedsource/db/SchemaService.java:17-405",
+            "backend/src/main/java/com/fixedsource/db/DataInitializer.java:14-24",
+            "docker-compose.yml:13-16"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "store.uploads",
+          "kind": "store",
+          "title": "上传目录",
+          "subtitle": "/app/uploads · 现场照片与附件",
+          "badge": "Docker volume",
+          "x": 1300,
+          "y": 860,
+          "w": 340,
+          "h": 110,
+          "summary": "multipart 上传落盘，单文件上限 10MB、请求上限 20MB；Docker 下挂载 fixed-source-uploads volume。",
+          "items": [
+            "POST /api/files 保存文件并返回可访问 URL",
+            "Nginx 把 /uploads 代理到后端",
+            "无对象存储、病毒扫描或生命周期策略"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/FileController.java:20-40",
+            "backend/src/main/resources/application.yml:13-17",
+            "docker-compose.yml:13-16",
+            "frontend/nginx.conf:31-35"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "external.mock-source",
+          "kind": "external",
+          "title": "模拟监测数据源",
+          "subtitle": "/mock-source/v1 · 10 企业 / 20 点位 / 6 污染物",
+          "badge": "同进程 Mock",
+          "x": 80,
+          "y": 740,
+          "w": 380,
+          "h": 140,
+          "summary": "与业务后端同进程的模拟源，按业务日期生成逐小时监测记录和异常剧本；CollectService 通过 HTTP 拉取，失败时回退进程内生成器。",
+          "items": [
+            "基础数据接口提供企业、点位、污染物标准",
+            "监测接口按 bizDate 返回 expectedCount 与 records",
+            "演示库另有 E011 和 2 个点位由台账新增"
+          ],
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/MockSourceController.java:13-28",
+            "backend/src/main/java/com/fixedsource/service/MockSourceService.java:25-70",
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:86-125"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "actor.subscribers",
+          "kind": "external",
+          "title": "订阅系统 ×5 + 开放消费者",
+          "subtitle": "npe / enf / city / open / edge · X-Open-Data-Key",
+          "badge": "逻辑外部",
+          "x": 1300,
+          "y": 700,
+          "w": 340,
+          "h": 120,
+          "summary": "5 个模拟订阅系统接收 HMAC 投递并回执；开放消费者通过独立 Key 拉取目录与最新数据包。物理上接收端也在同一后端进程内。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/db/SeedService.java:186-200",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:13-30",
+            "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:18-55"
+          ],
+          "confidence": "high"
+        }
+      ],
+      "edges": [
+        {
+          "id": "e.spa-nginx",
+          "from": "container.spa",
+          "to": "container.nginx",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "t",
+            "at": 0.5
+          },
+          "labelLines": [
+            "静态资源 / XHR"
+          ],
+          "protocol": "HTTP",
+          "sync": "sync",
+          "summary": "浏览器先加载 Nginx 托管的 SPA，再由页面发起 /api 请求；SPA 路由回退到 index.html。",
+          "evidence": [
+            "frontend/nginx.conf:37-39",
+            "frontend/src/api.js:5-8"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.nginx-backend",
+          "from": "container.nginx",
+          "to": "container.backend",
+          "fromPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.142
+          },
+          "labelLines": [
+            "代理"
+          ],
+          "protocol": "HTTP · proxy_pass",
+          "sync": "sync",
+          "summary": "代理 /api、/open-data、/mock-consumer、/mock-source 与 /uploads 到 backend:8080。",
+          "evidence": [
+            "frontend/nginx.conf:6-36"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.android-backend",
+          "from": "container.android",
+          "to": "container.backend",
+          "fromPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "t",
+            "at": 0.93
+          },
+          "via": [
+            [
+              1290,
+              155
+            ],
+            [
+              1290,
+              225
+            ],
+            [
+              1180,
+              225
+            ]
+          ],
+          "labelLines": [
+            "HTTP 8080",
+            "X-Token"
+          ],
+          "protocol": "HTTP · OkHttp",
+          "sync": "sync",
+          "summary": "Android 直连后端地址（默认模拟器 10.0.2.2:8080），不经过 Nginx；服务地址可在登录时配置。",
+          "evidence": [
+            "android/app/build.gradle.kts:33",
+            "android/app/src/main/java/com/fixedsource/mobile/data/ApiClient.kt:21-60"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.backend-h2",
+          "from": "container.backend",
+          "to": "store.h2",
+          "fromPort": {
+            "side": "r",
+            "at": 0.284
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "labelLines": [
+            "JDBC"
+          ],
+          "protocol": "JDBC · JdbcTemplate",
+          "sync": "sync",
+          "summary": "所有业务模块与数据共享模块通过 JdbcTemplate 读写同一个 H2 文件库。",
+          "evidence": [
+            "backend/pom.xml:33-37",
+            "backend/src/main/resources/application.yml:6-13"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.backend-uploads",
+          "from": "container.backend",
+          "to": "store.uploads",
+          "fromPort": {
+            "side": "r",
+            "at": 0.892
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.36
+          },
+          "labelLines": [
+            "附件上传"
+          ],
+          "protocol": "本地文件系统",
+          "sync": "sync",
+          "summary": "照片与附件写入 /app/uploads，Docker volume 持久化；Nginx 代理读取。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/controller/FileController.java:20-40",
+            "docker-compose.yml:13-16"
+          ],
+          "confidence": "high"
+        },
+        {
+          "id": "e.collect-mock",
+          "from": "module.collect",
+          "to": "external.mock-source",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "r",
+            "at": 0.5
+          },
+          "via": [
+            [
+              870,
+              412
+            ],
+            [
+              530,
+              412
+            ],
+            [
+              530,
+              810
+            ]
+          ],
+          "labelLines": [],
+          "protocol": "HTTP · RestClient",
+          "sync": "sync",
+          "summary": "采集模块按业务日期请求模拟源监测接口；异常时使用进程内生成器兜底。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/CollectService.java:86-125"
+          ],
+          "confidence": "high",
+          "label": ""
+        },
+        {
+          "id": "e.catalog-export",
+          "from": "module.catalog",
+          "to": "module.export",
+          "fromPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "b",
+            "at": 0.8
+          },
+          "labelLines": [],
+          "protocol": "HTTP · /api/data-service/v1",
+          "sync": "sync",
+          "summary": "数据平台模块通过 DataHubSourceClient 用 datahub 服务账号登录业务平台，再导出租基础数据集；这是同进程内的真实 HTTP 自调用。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80"
+          ],
+          "confidence": "high",
+          "label": "",
+          "via": [
+            [
+              530,
+              810
+            ],
+            [
+              530,
+              682
+            ],
+            [
+              700,
+              682
+            ]
+          ]
+        },
+        {
+          "id": "e.datahub-subscribers",
+          "from": "module.dispatch",
+          "to": "actor.subscribers",
+          "fromPort": {
+            "side": "b",
+            "at": 0.5
+          },
+          "toPort": {
+            "side": "l",
+            "at": 0.5
+          },
+          "via": [
+            [
+              875,
+              875
+            ],
+            [
+              1250,
+              875
+            ],
+            [
+              1250,
+              760
+            ]
+          ],
+          "labelLines": [
+            "HMAC 投递",
+            "回执"
+          ],
+          "protocol": "HTTP POST · mock-consumer",
+          "sync": "sync",
+          "summary": "逐个订阅方计算签名并投递，接收端验签后写回执；失败记录 data_dispatch 并可重试。",
+          "evidence": [
+            "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-530",
+            "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:21-30"
+          ],
+          "confidence": "high",
+          "both": true
+        }
+      ]
+    }
+  ],
+  "flowView": {
+    "title": "关键闭环",
+    "caption": "两条端到端链路：监测研判与任务闭环，以及基础数据共享闭环。步骤中的表名与接口均可在代码中找到对应实现。",
+    "flows": [
+      {
+        "id": "business",
+        "title": "监测研判与任务闭环",
+        "subtitle": "模拟源出数 → 采集 → 规则 → AI → 事件风险 → 审核下发 → 现场反馈关闭",
+        "steps": [
+          {
+            "n": 1,
+            "lane": "自动",
+            "title": "模拟源出数",
+            "desc": "按业务日期生成逐小时监测记录，内置超限、恒值、突变、状态不一致等异常剧本。",
+            "artifact": "GET /mock-source/v1/monitoring",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/MockSourceService.java:154-235"
+            ],
+            "summary": "模拟源是同一后端进程内的模块；CollectService 通过 HTTP 访问它，失败时可回退到进程内生成器。"
+          },
+          {
+            "n": 2,
+            "lane": "自动",
+            "title": "采集批次入库",
+            "desc": "创建批次，拉取记录并按企业+点位+污染物+时间 MERGE，重复采集保持幂等。",
+            "artifact": "collect_batch · monitoring_record",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/CollectService.java:73-140"
+            ],
+            "summary": "POST /api/collect-batches 触发；代码中未发现 @Scheduled 定时任务，采集不是由调度器自动发起。"
+          },
+          {
+            "n": 3,
+            "lane": "自动",
+            "title": "质量校验",
+            "desc": "记录缺失与异常，按 24 个应到小时计算每日完整率，保留批次与日期。",
+            "artifact": "data_quality_issue",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataQualityService.java:25-92"
+            ],
+            "summary": "质量问题与监测记录同批次生成，供质量页汇总、明细与 Top 点位使用。"
+          },
+          {
+            "n": 4,
+            "lane": "自动",
+            "title": "规则生成线索",
+            "desc": "执行 R001–R005，命中后写 clue，保存触发值、阈值、时间范围、证据与 fingerprint。",
+            "artifact": "clue · rule_config",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+            ],
+            "summary": "规则可在页面启停；线索来源区分 AUTO 与 MANUAL，进入同一聚合链路。"
+          },
+          {
+            "n": 5,
+            "lane": "自动",
+            "title": "AI 辅助研判",
+            "desc": "按规则编码与污染物检索 10 条本地法规片段；命中输出条款引用，未命中拒答并降低可信度。",
+            "artifact": "ai_assessment",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/AiService.java:80-200",
+              "backend/src/main/resources/knowledge/regulations.json"
+            ],
+            "summary": "mock-rag-v1 是确定性实现，输出解释、建议、引用、不确定性与置信度，保留人工复核边界。"
+          },
+          {
+            "n": 6,
+            "lane": "自动",
+            "title": "事件聚合与风险",
+            "desc": "同企业/排口/污染物/相邻时段聚合为事件，定 P1–P3；按 7 日事件、完整率与待办任务计算 A/B/C/D。",
+            "artifact": "abnormal_event · risk_snapshot",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/EventRiskService.java:33-180"
+            ],
+            "summary": "事件可拆分、合并；风险分写 enterprise 并留 risk_snapshot，权重版本 risk-v1。"
+          },
+          {
+            "n": 7,
+            "lane": "审核",
+            "title": "确认线索并下发任务",
+            "desc": "审核人员确认线索，创建 inspection_task，写 dispatch_outbox 并置 DISPATCHED；可督办与重试对账。",
+            "artifact": "inspection_task · dispatch_outbox",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/ClueController.java:81-104",
+              "backend/src/main/java/com/fixedsource/service/TaskService.java:31-95"
+            ],
+            "summary": "下发是 outbox 记录与状态变更，移动端通过轮询拉取；没有独立推送网关或消息队列。"
+          },
+          {
+            "n": 8,
+            "lane": "现场",
+            "title": "现场取证与关闭",
+            "desc": "H5 / Android 拉取任务，接收后拍照并叠加时间地点水印、上传附件、提交反馈；审核关闭后事件状态回写。",
+            "artifact": "task_feedback · inspection_report",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/TaskService.java:98-175",
+              "frontend/src/views/mobile/MobileTaskDetail.vue:153-240",
+              "android/app/src/main/java/com/fixedsource/mobile/util/WatermarkRenderer.kt"
+            ],
+            "summary": "任务状态与线索状态分离；移动端重复提交有保护，报告可在浏览器打印或导出 PDF。"
+          }
+        ]
+      },
+      {
+        "id": "sharing",
+        "title": "基础数据共享闭环",
+        "subtitle": "数据服务出口 → 数据包封装 → HMAC 投递 → 验签回执 → 对账重试 / 开放拉取",
+        "steps": [
+          {
+            "n": 1,
+            "lane": "业务平台",
+            "title": "基础数据服务出口",
+            "desc": "数据平台用 datahub 服务账号获取 7 类基础数据集；规则、事件、风险、AI 与任务不共享。",
+            "artifact": "GET /api/data-service/v1/export/{code}",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/DataServiceController.java:26-65",
+              "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:28-80"
+            ],
+            "summary": "通过真实 HTTP + 服务账号 token 对接，不直接读业务库。"
+          },
+          {
+            "n": 2,
+            "lane": "数据平台",
+            "title": "封装数据包",
+            "desc": "header + body 封装，计算 SHA-256 payload hash，写 data_package，状态 PUBLISHED。",
+            "artifact": "data_package",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-160"
+            ],
+            "summary": "包号 DP+时间戳；记录数据集、业务日期、记录数与敏感级别。"
+          },
+          {
+            "n": 3,
+            "lane": "数据平台",
+            "title": "HMAC 投递",
+            "desc": "按订阅方 secret 计算 HMAC-SHA256(timestamp + packageNo + sha256(body))，POST 到接收端。",
+            "artifact": "data_dispatch",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:458-520"
+            ],
+            "summary": "记录 HTTP 状态、延迟、签名、响应和错误；失败可重试。"
+          },
+          {
+            "n": 4,
+            "lane": "订阅方",
+            "title": "验签与幂等接收",
+            "desc": "校验 AppKey、10 分钟时间窗、HMAC 签名；按 packageNo 幂等，写 data_receipt。",
+            "artifact": "data_receipt",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/MockConsumerController.java:21-30",
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:395-445"
+            ],
+            "summary": "回执包含 receiptNo、packageNo、validation=HMAC-SHA256。"
+          },
+          {
+            "n": 5,
+            "lane": "数据平台",
+            "title": "对账与重试",
+            "desc": "汇总成功/失败投递，计算包状态；支持单条重试和下发对账。",
+            "artifact": "data_dispatch · 对账接口",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/service/DataHubService.java:529-535",
+              "backend/src/main/java/com/fixedsource/controller/IntegrationController.java:23-56"
+            ],
+            "summary": "包状态 PUBLISHED / DISTRIBUTED / PARTIAL / FAILED；重试会累加 retry_count。"
+          },
+          {
+            "n": 6,
+            "lane": "开放方",
+            "title": "开放数据拉取",
+            "desc": "使用独立 X-Open-Data-Key 获取开放目录与指定数据集最新数据包。",
+            "artifact": "GET /open-data/v1/catalog",
+            "confidence": "high",
+            "evidence": [
+              "backend/src/main/java/com/fixedsource/controller/OpenDataController.java:30-55"
+            ],
+            "summary": "开放 Key 与业务用户 token 分离，避免混用权限。"
+          }
+        ]
+      }
+    ],
+    "tracks": [
+      {
+        "name": "线索状态",
+        "states": [
+          "PENDING",
+          "CONFIRMED",
+          "DISPATCHED",
+          "IN_PROGRESS",
+          "FEEDBACK",
+          "CLOSED"
+        ],
+        "note": "审核可置 REVOKED；事件状态由线索状态派生"
+      },
+      {
+        "name": "任务状态",
+        "states": [
+          "PENDING_DISPATCH",
+          "DISPATCHED",
+          "IN_PROGRESS",
+          "FEEDBACK",
+          "CLOSED"
+        ],
+        "note": "移动端轮询拉取；关闭后回写线索与事件"
+      }
+    ]
+  },
+  "dataView": {
+    "title": "数据资产与关键口径",
+    "caption": "25 张 H2 表分属 6 个数据域；右侧列出规则、事件优先级、风险分级、AI 置信度等可复现口径。",
+    "domains": [
+      {
+        "name": "基础主数据",
+        "tone": "green",
+        "count": 4,
+        "tables": [
+          {
+            "name": "enterprise",
+            "note": "主体、区域、行业、生产状态、风险分/等级"
+          },
+          {
+            "name": "monitor_point",
+            "note": "排口 / 监测点、点位类型、运行状态"
+          },
+          {
+            "name": "pollutant",
+            "note": "污染物、单位、执行限值、标准引用"
+          },
+          {
+            "name": "public_reference_item",
+            "note": "重点排污单位名录、标准与指南元数据"
+          }
+        ],
+        "key": "演示数据 11 家企业 · 22 个点位 · 6 类污染物",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:17-48",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:313-337",
+          "README.md:79-84"
+        ]
+      },
+      {
+        "name": "监测与采集",
+        "tone": "teal",
+        "count": 4,
+        "tables": [
+          {
+            "name": "monitoring_record",
+            "note": "逐小时实测/折算/流量、数据状态、批次"
+          },
+          {
+            "name": "collect_batch",
+            "note": "批次、应收/实收、成功/失败、耗时与说明"
+          },
+          {
+            "name": "data_quality_issue",
+            "note": "缺失/异常问题、严重度、点位与日期"
+          },
+          {
+            "name": "data_source_config",
+            "note": "数据源连接与启停配置"
+          }
+        ],
+        "key": "35,685 条 30 天逐小时记录；每日完整率按 24 小时计算",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:49-82",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:231-258",
+          "README.md:82"
+        ]
+      },
+      {
+        "name": "规则与线索",
+        "tone": "blue",
+        "count": 4,
+        "tables": [
+          {
+            "name": "rule_config",
+            "note": "规则编码、阈值、启停与版本"
+          },
+          {
+            "name": "clue",
+            "note": "证据快照、fingerprint、来源、可信度、AI 状态"
+          },
+          {
+            "name": "test_anomaly_label",
+            "note": "异常真值标签与命中对照"
+          },
+          {
+            "name": "backtest_run",
+            "note": "回测区间、命中与指标结果"
+          }
+        ],
+        "key": "R001–R005；线索状态 PENDING → CONFIRMED → … → CLOSED",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:83-143",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:260-297",
+          "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+        ]
+      },
+      {
+        "name": "事件 · 风险 · 研判",
+        "tone": "amber",
+        "count": 3,
+        "tables": [
+          {
+            "name": "abnormal_event",
+            "note": "聚合事件、优先级 P1–P3、最大严重度、可信度"
+          },
+          {
+            "name": "risk_snapshot",
+            "note": "风险分、等级、因子 JSON、权重版本"
+          },
+          {
+            "name": "ai_assessment",
+            "note": "模型、提示版本、内容、引用、置信度、拒答"
+          }
+        ],
+        "key": "P1：HIGH 且可信度 ≥65；风险 A/B/C/D 按 25/50/75 分界",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:124-156",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:209-219",
+          "backend/src/main/java/com/fixedsource/service/EventRiskService.java:133-180"
+        ]
+      },
+      {
+        "name": "任务与报告",
+        "tone": "rose",
+        "count": 5,
+        "tables": [
+          {
+            "name": "inspection_task",
+            "note": "任务状态、SLA、外发单号、督办"
+          },
+          {
+            "name": "task_feedback",
+            "note": "反馈内容、照片附件、提交人"
+          },
+          {
+            "name": "inspection_report",
+            "note": "可打印核查报告"
+          },
+          {
+            "name": "dispatch_outbox",
+            "note": "下发消息、目标、请求/响应、重试"
+          },
+          {
+            "name": "audit_log",
+            "note": "台账、采集、确认、下发等审计"
+          }
+        ],
+        "key": "任务与线索状态分离；outbox 可重试对账",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:157-230",
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:298-312",
+          "backend/src/main/java/com/fixedsource/service/TaskService.java:31-175"
+        ]
+      },
+      {
+        "name": "数据共享",
+        "tone": "indigo",
+        "count": 5,
+        "tables": [
+          {
+            "name": "data_catalog",
+            "note": "7 类开放数据目录、敏感级别、启停"
+          },
+          {
+            "name": "data_subscriber",
+            "note": "订阅方、app_key/secret、端点"
+          },
+          {
+            "name": "data_package",
+            "note": "数据包 header/body、payload hash、状态"
+          },
+          {
+            "name": "data_dispatch",
+            "note": "投递状态、HTTP 状态、延迟、签名、重试"
+          },
+          {
+            "name": "data_receipt",
+            "note": "回执号、验签状态、幂等记录"
+          }
+        ],
+        "key": "5 个模拟订阅方；SHA-256 包哈希 + HMAC-SHA256 签名",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/db/SchemaService.java:338-420",
+          "backend/src/main/java/com/fixedsource/db/SeedService.java:186-200",
+          "backend/src/main/java/com/fixedsource/service/DataHubService.java:94-530"
+        ]
+      }
+    ],
+    "algorithms": [
+      {
+        "title": "规则口径",
+        "lines": [
+          "R001 浓度超限：连续超限小时聚为一条线索；峰值 ≥1.3×限值为 HIGH，否则 MEDIUM",
+          "R002 数据缺失：当日有效记录少于 22 小时",
+          "R003 连续恒值；R004 异常突变；R005 状态不一致（HIGH）"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:82-215"
+        ]
+      },
+      {
+        "title": "事件与风险",
+        "lines": [
+          "事件优先级：HIGH 且可信度 ≥65 → P1；HIGH 或（MEDIUM 且 ≥55）→ P2；其余 P3",
+          "风险分 = high×16 + medium×8 + low×3 + (100−完整率)×0.35 + 待办任务×4，截断 0–100",
+          "分级：<25 A；<50 B；<75 C；其余 D；权重版本 risk-v1"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/EventRiskService.java:108-180"
+        ]
+      },
+      {
+        "title": "AI 引用与拒答",
+        "lines": [
+          "按 ruleCode + pollutant 匹配，最多引用 3 条法规",
+          "无匹配条款：拒答，置信度 0.18，线索可信度 −12",
+          "有匹配：置信度 min(0.88, 0.58 + 0.08×引用数)，线索可信度 +8"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/AiService.java:137-175"
+        ]
+      },
+      {
+        "title": "幂等与去重",
+        "lines": [
+          "监测记录按 企业+点位+污染物+时间 MERGE，重复采集不重复入库",
+          "线索使用 fingerprint 去重，避免同批次重复生成",
+          "数据包按 packageNo 幂等接收，重复投递返回既有回执"
+        ],
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/CollectService.java:138-150",
+          "backend/src/main/java/com/fixedsource/service/RuleEngineService.java:240-266",
+          "backend/src/main/java/com/fixedsource/service/DataHubService.java:425-435"
+        ]
+      }
+    ]
+  },
+  "notes": {
+    "boundaries": [
+      {
+        "title": "采集触发方式",
+        "text": "README 描述“每日采集”，但代码中只发现 @EnableScheduling，未发现 @Scheduled 任务；当前采集由 POST /api/collect-batches 或页面按钮触发。若答辩需要“每日自动采集”，需要补调度器。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/FixedSourceApplication.java:8",
+          "backend/src/main/java/com/fixedsource/controller/CollectController.java:31-40"
+        ]
+      },
+      {
+        "title": "数据共享平台不是独立部署单元",
+        "text": "国家数据共享平台在当前原型中与业务后端同 JVM、共用 H2，通过 HTTP 自调用模拟跨平台对接；没有独立服务、消息队列或对象存储。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/resources/application-docker.yml:11-16",
+          "backend/src/main/java/com/fixedsource/service/DataHubSourceClient.java:21-27"
+        ]
+      },
+      {
+        "title": "任务下发没有推送网关",
+        "text": "下发动作写 dispatch_outbox 并变更状态；H5 与 Android 通过轮询 /api/mobile/tasks 拉取。outbox 更多用于演示对账与重试，而不是可靠消息投递。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/TaskService.java:62-95",
+          "frontend/src/views/mobile/MobileTasks.vue:105"
+        ]
+      },
+      {
+        "title": "会话不持久化",
+        "text": "token 存在内存 ConcurrentHashMap，服务重启即失效；没有刷新 token、设备绑定或集中式会话存储。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/AuthService.java:15-56",
+          "backend/src/main/java/com/fixedsource/config/AuthInterceptor.java:44-70"
+        ]
+      },
+      {
+        "title": "AI 是确定性 mock RAG",
+        "text": "不调用外部大模型或向量库，法规片段只有 10 条；置信度与引用数量是确定性公式，适合离线演示，不代表真实模型效果。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/java/com/fixedsource/service/AiService.java:43-58",
+          "README.md:223"
+        ]
+      },
+      {
+        "title": "Android 运行验收待补",
+        "text": "源码与 Debug APK 已完成，但当前环境无模拟器/真机，相机、定位与 UI 运行验收仍需在真机补测。",
+        "confidence": "unknown",
+        "evidence": [
+          "README.md:389"
+        ]
+      },
+      {
+        "title": "单节点存储与明文链路",
+        "text": "H2 单文件库、本地上传目录、HTTP 明文与局域网演示；生产化需要 HTTPS、备份、对象存储、Token 刷新和更细权限。",
+        "confidence": "high",
+        "evidence": [
+          "backend/src/main/resources/application.yml:6-17",
+          "README.md:390-394"
+        ]
+      }
+    ]
+  }
+};
+
+(function () {
+  'use strict';
+
+  const NS = 'http://www.w3.org/2000/svg';
+  const FONT = '"Source Han Sans SC","Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif';
+  const MONO = '"Cascadia Mono","JetBrains Mono","SFMono-Regular",Consolas,monospace';
+
+  const KIND_LABEL = {
+    actor: '业务角色',
+    container: '容器',
+    module: '模块',
+    store: '数据存储',
+    external: '外部系统',
+    knowledge: '知识源',
+    boundary: '系统边界',
+    chip: '能力入口',
+    note: '运行说明',
+    step: '流程步骤',
+    domain: '数据域',
+    algorithm: '算法口径',
+    edge: '关系'
+  };
+  const CONF_LABEL = { high: '高置信度', medium: '中置信度', low: '低置信度', unknown: '待验证' };
+  const STATE_LABEL = { current: '当前状态', target: '目标状态', proposed: '拟建', deprecated: '已弃用' };
+  const PALETTE = { teal: '#0f766e', indigo: '#4338ca', amber: '#b45309', rose: '#be123c', slate: '#64748b' };
+  const CONF_COLOR = { high: '#0f766e', medium: '#b45309', low: '#be123c', unknown: '#64748b' };
+  const KIND_STYLE = {
+    actor: { accent: '#b45309', fill: '#ffffff', stroke: '#e5d5c2' },
+    container: { accent: '#0f766e', fill: '#ffffff', stroke: '#c9dfd8' },
+    module: { accent: '#0e7490', fill: '#ffffff', stroke: '#d6e5e2' },
+    chip: { accent: '#0f766e', fill: '#f3f9f6', stroke: '#cfe3db' },
+    external: { accent: '#64748b', fill: '#fbfcfc', stroke: '#b9c8c3', dash: '5 4' },
+    knowledge: { accent: '#6d28d9', fill: '#fbfaff', stroke: '#d6cff0' },
+    store: { accent: '#4338ca', fill: '#fbfcff', stroke: '#ccd5ea' },
+    note: { accent: '#4d7c0f', fill: '#f7f9f2', stroke: '#dce5cf' }
+  };
+  const ICONS = {
+    actor: '<circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-4 3.2-6.5 7-6.5s7 2.5 7 6.5"/>',
+    container: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M8 10v9"/>',
+    module: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+    store: '<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/>',
+    external: '<path d="M7 18a4 4 0 0 1-.6-8 5.5 5.5 0 0 1 10.6-1.4A4.5 4.5 0 0 1 18 18Z"/>',
+    knowledge: '<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
+    note: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7h.01"/>',
+    chip: '<rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 9h6v6H9z"/>'
+  };
+  const LANE_CLASS = {
+    '自动': 'lane-teal',
+    '审核': 'lane-amber',
+    '现场': 'lane-rose',
+    '业务平台': 'lane-green',
+    '数据平台': 'lane-indigo',
+    '订阅方': 'lane-slate',
+    '开放方': 'lane-blue',
+    '分析': 'lane-blue'
+  };
+  const TABS = [
+    { id: 'context', no: '01', label: '系统上下文', level: 'L1' },
+    { id: 'containers', no: '02', label: '容器与模块', level: 'L2' },
+    { id: 'flows', no: '03', label: '关键闭环', level: 'FLOW' },
+    { id: 'data', no: '04', label: '数据资产', level: 'DATA' }
+  ];
+
+  const state = { active: 'context', search: '', transforms: {} };
+  const $ = (sel, root) => (root || document).querySelector(sel);
+  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+
+  function esc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function svgEl(tag, attrs, parent) {
+    const el = document.createElementNS(NS, tag);
+    if (attrs) {
+      Object.keys(attrs).forEach((k) => {
+        const v = attrs[k];
+        if (v !== undefined && v !== null && v !== false) el.setAttribute(k, v);
+      });
+    }
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+
+  function svgText(parent, x, y, content, attrs) {
+    const t = svgEl('text', Object.assign({ x: x, y: y }, attrs || {}), parent);
+    t.textContent = content == null ? '' : String(content);
+    return t;
+  }
+
+  function el(tag, className, parent, html) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (html != null) node.innerHTML = html;
+    if (parent) parent.appendChild(node);
+    return node;
+  }
+
+  function charWidth(ch, size) {
+    if (/[\u2e80-\u9fff\uf900-\ufaff\uff00-\uffef]/.test(ch)) return size;
+    if (/[A-Z]/.test(ch)) return size * 0.66;
+    if (/[a-z0-9]/.test(ch)) return size * 0.56;
+    if (ch === ' ') return size * 0.32;
+    return size * 0.52;
+  }
+
+  function measure(text, size) {
+    let w = 0;
+    for (const ch of String(text)) w += charWidth(ch, size);
+    return w;
+  }
+
+  function wrapByWidth(text, maxWidth, size, maxLines) {
+    const source = String(text == null ? '' : text);
+    const chars = Array.from(source);
+    if (!chars.length) return [''];
+    if (maxLines === 1) {
+      if (measure(source, size) <= maxWidth) return [source];
+      let rest = source;
+      while (rest && measure(rest + '…', size) > maxWidth) rest = rest.slice(0, -1);
+      return [rest + '…'];
+    }
+    const lines = [];
+    let buf = '';
+    let width = 0;
+    let i = 0;
+    while (i < chars.length) {
+      const ch = chars[i];
+      const cw = charWidth(ch, size);
+      if (width + cw > maxWidth && buf.length) {
+        lines.push(buf);
+        buf = '';
+        width = 0;
+        if (lines.length === maxLines - 1) {
+          const remaining = chars.slice(i).join('');
+          let rest = remaining;
+          while (rest && measure(rest + '…', size) > maxWidth) rest = rest.slice(0, -1);
+          lines.push(rest + (rest.length < remaining.length ? '…' : ''));
+          return lines;
+        }
+        continue;
+      }
+      buf += ch;
+      width += cw;
+      i++;
+    }
+    if (buf) lines.push(buf);
+    return lines.slice(0, maxLines);
+  }
+
+  function dedupePoints(points) {
+    const out = [];
+    points.forEach((p) => {
+      if (!p) return;
+      const last = out[out.length - 1];
+      if (!last || Math.abs(last.x - p.x) > 0.6 || Math.abs(last.y - p.y) > 0.6) {
+        out.push({ x: Number(p.x), y: Number(p.y) });
+      }
+    });
+    return out;
+  }
+
+  function roundedPath(points, radius) {
+    if (points.length < 2) return '';
+    if (points.length === 2) return `M${points[0].x},${points[0].y} L${points[1].x},${points[1].y}`;
+    let d = `M${points[0].x},${points[0].y}`;
+    for (let i = 1; i < points.length - 1; i++) {
+      const prev = points[i - 1];
+      const p = points[i];
+      const next = points[i + 1];
+      const v1 = { x: p.x - prev.x, y: p.y - prev.y };
+      const v2 = { x: next.x - p.x, y: next.y - p.y };
+      const l1 = Math.hypot(v1.x, v1.y) || 1;
+      const l2 = Math.hypot(v2.x, v2.y) || 1;
+      const rr = Math.min(radius, l1 / 2, l2 / 2);
+      const a = { x: p.x - (v1.x / l1) * rr, y: p.y - (v1.y / l1) * rr };
+      const b = { x: p.x + (v2.x / l2) * rr, y: p.y + (v2.y / l2) * rr };
+      d += ` L${a.x},${a.y} Q${p.x},${p.y} ${b.x},${b.y}`;
+    }
+    const last = points[points.length - 1];
+    d += ` L${last.x},${last.y}`;
+    return d;
+  }
+
+  function port(node, side, at) {
+    const f = typeof at === 'number' ? at : 0.5;
+    if (side === 'l') return { x: node.x, y: node.y + node.h * f };
+    if (side === 'r') return { x: node.x + node.w, y: node.y + node.h * f };
+    if (side === 't') return { x: node.x + node.w * f, y: node.y };
+    return { x: node.x + node.w * f, y: node.y + node.h };
+  }
+
+  function findInView(view, id) {
+    return view.boundaries.find((n) => n.id === id) || view.nodes.find((n) => n.id === id);
+  }
+
+  function findEntity(id, preferredView) {
+    const order = preferredView
+      ? [MODEL.views.find((v) => v.id === preferredView)].concat(MODEL.views.filter((v) => v.id !== preferredView))
+      : MODEL.views;
+    for (const view of order) {
+      if (!view) continue;
+      const found = findInView(view, id);
+      if (found) return { entity: found, view: view };
+    }
+    return null;
+  }
+
+  function viewStats(view) {
+    const refs = new Set();
+    const add = (obj) => { (obj.evidence || []).forEach((r) => refs.add(r)); };
+    add(view);
+    view.nodes.forEach(add);
+    view.boundaries.forEach(add);
+    view.edges.forEach(add);
+    return { nodes: view.nodes.length + view.boundaries.length, edges: view.edges.length, evidence: refs.size };
+  }
+
+  function computeEvidenceCount() {
+    const refs = new Set();
+    (function walk(obj) {
+      if (!obj || typeof obj !== 'object') return;
+      if (Array.isArray(obj)) { obj.forEach(walk); return; }
+      if (Array.isArray(obj.evidence)) obj.evidence.forEach((r) => refs.add(r));
+      Object.keys(obj).forEach((k) => walk(obj[k]));
+    })(MODEL);
+    return refs.size;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* shell                                                               */
+  /* ------------------------------------------------------------------ */
+
+  function init() {
+    $('#meta-date').textContent = MODEL.meta.generatedAt;
+    $('#evidence-count').textContent = computeEvidenceCount();
+    buildTabs();
+    buildViews();
+    buildFlows();
+    buildData();
+    renderHelp();
+    bindActions();
+    switchView('context');
+  }
+
+  function buildTabs() {
+    const tabs = $('#tabs');
+    TABS.forEach((tab) => {
+      const button = el('button', 'tab', tabs);
+      button.type = 'button';
+      button.dataset.view = tab.id;
+      button.setAttribute('role', 'tab');
+      button.setAttribute('aria-selected', 'false');
+      button.innerHTML = `<span class="tab-no">${tab.no}</span><span>${tab.label}</span><span class="tab-level">${tab.level}</span>`;
+      button.addEventListener('click', () => switchView(tab.id));
+    });
+  }
+
+  function buildViews() {
+    const workspace = $('#workspace');
+    MODEL.views.forEach((view) => {
+      const stats = viewStats(view);
+      const section = el('section', 'view map-view', workspace);
+      section.id = 'view-' + view.id;
+      section.innerHTML = `
+        <div class="view-head">
+          <div class="head-left">
+            <div class="kicker"><span class="level-pill">${esc(view.level)}</span> CURRENT STATE · ${esc(view.id === 'context' ? 'SYSTEM CONTEXT' : 'CONTAINER VIEW')}</div>
+            <h2>${esc(view.title)}</h2>
+            <p>${esc(view.caption)}</p>
+          </div>
+          <div class="head-stats">
+            <div class="stat"><b>${stats.nodes}</b><span>节点</span></div>
+            <div class="stat"><b>${stats.edges}</b><span>关系</span></div>
+            <div class="stat"><b>${stats.evidence}</b><span>证据</span></div>
+          </div>
+        </div>
+        <div class="stage">
+          <svg role="img" aria-label="${esc(view.title)}"></svg>
+          <div class="mobile-hint">拖拽平移 · 按钮缩放</div>
+          <div class="legend-card">
+            <div class="legend-row"><b>置信度</b><span class="cdot high"></span>高<span class="cdot medium"></span>中<span class="cdot low"></span>低</div>
+            <div class="legend-row"><b>连线</b><span class="lline"></span>已证实<span class="lline dashed"></span>模拟 / 推断</div>
+            <div class="legend-note">点击节点或连线查看职责、协议与证据</div>
+          </div>
+          <div class="zoom">
+            <button type="button" data-zoom="out" aria-label="缩小">−</button>
+            <span class="zoom-label">100%</span>
+            <button type="button" data-zoom="in" aria-label="放大">+</button>
+            <button type="button" class="fit" data-zoom="fit">适应</button>
+          </div>
+        </div>`;
+      buildMap(section, view);
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* svg map                                                             */
+  /* ------------------------------------------------------------------ */
+
+  function buildMap(section, view) {
+    const svg = $('svg', section);
+    svg.setAttribute('viewBox', `0 0 ${view.width} ${view.height}`);
+    const compact = window.matchMedia('(max-width: 900px)').matches;
+    svg.setAttribute('preserveAspectRatio', compact ? 'xMidYMid slice' : 'xMidYMid meet');
+    svg.setAttribute('style', `font-family:${FONT};`);
+    window.addEventListener('resize', () => {
+      const small = window.matchMedia('(max-width: 900px)').matches;
+      svg.setAttribute('preserveAspectRatio', small ? 'xMidYMid slice' : 'xMidYMid meet');
+    });
+
+    const defs = svgEl('defs', {}, svg);
+    Object.keys(PALETTE).forEach((tone) => {
+      const marker = svgEl('marker', {
+        id: `arrow-${tone}-${view.id}`,
+        viewBox: '0 0 10 10',
+        refX: '9',
+        refY: '5',
+        markerWidth: '7.2',
+        markerHeight: '7.2',
+        orient: 'auto-start-reverse'
+      }, defs);
+      svgEl('path', { d: 'M 0 0 L 10 5 L 0 10 z', fill: PALETTE[tone] }, marker);
+    });
+    const filter = svgEl('filter', {
+      id: `soft-${view.id}`,
+      x: '-20%', y: '-20%', width: '140%', height: '140%'
+    }, defs);
+    svgEl('feDropShadow', {
+      dx: '0', dy: '2.5', stdDeviation: '3', 'flood-color': '#132420', 'flood-opacity': '0.09'
+    }, filter);
+
+    const canvas = svgEl('g', { class: 'canvas' }, svg);
+    const gBoundaries = svgEl('g', { class: 'layer-boundaries' }, canvas);
+    const gPanels = svgEl('g', { class: 'layer-panels' }, canvas);
+    const gEdges = svgEl('g', { class: 'layer-edges' }, canvas);
+    const gLabels = svgEl('g', { class: 'layer-edge-labels' }, canvas);
+    const gNodes = svgEl('g', { class: 'layer-nodes' }, canvas);
+
+    view.boundaries.forEach((node) => drawBoundary(node, gBoundaries, view));
+    (view.panels || []).forEach((panel) => drawPanel(panel, gPanels));
+    view.edges.forEach((edge) => drawEdge(edge, gEdges, gLabels, view));
+    view.nodes.forEach((node) => drawNode(node, gNodes, view));
+
+    bindStage(section, view);
+  }
+
+  function drawBoundary(node, parent, view) {
+    const datahub = node.tone === 'datahub';
+    const fill = datahub ? 'rgba(180,83,9,0.032)' : 'rgba(15,118,110,0.036)';
+    const stroke = datahub ? '#d7b88b' : '#94c4ba';
+    const accent = datahub ? '#b45309' : '#0f766e';
+    const g = svgEl('g', {
+      class: 'boundary',
+      'data-id': node.id,
+      'data-view': view.id,
+      tabindex: '0',
+      role: 'button',
+      transform: `translate(${node.x} ${node.y})`
+    }, parent);
+    svgEl('rect', {
+      width: node.w, height: node.h, rx: 24,
+      fill: fill, stroke: stroke, 'stroke-width': 1.5,
+      'stroke-dasharray': datahub ? '7 5' : 'none'
+    }, g);
+    svgEl('rect', { x: 0, y: 22, width: 5, height: 34, rx: 2.5, fill: accent }, g);
+    svgText(g, 24, 38, node.title, { 'font-size': 16, 'font-weight': 700, fill: '#142e27', 'font-family': FONT });
+    svgText(g, 24, 60, node.subtitle, { 'font-size': 10.4, fill: '#688078', 'font-family': FONT });
+    if (node.badge) {
+      svgText(g, node.w - 22, 36, node.badge, {
+        'text-anchor': 'end', 'font-size': 8.4, 'letter-spacing': '0.05em',
+        fill: datahub ? '#9a5b12' : '#5f8479', 'font-family': MONO
+      });
+    }
+    (node.footer || []).forEach((line, i) => {
+      svgText(g, 24, node.h - 30 + i * 16, line, {
+        'font-size': 9.4, fill: '#7c9088', 'font-family': FONT
+      });
+    });
+    g.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openNode(node, view);
+    });
+    g.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openNode(node, view);
+      }
+    });
+  }
+
+  function drawPanel(panel, parent) {
+    const g = svgEl('g', {
+      class: 'panel',
+      'pointer-events': 'none',
+      transform: `translate(${panel.x} ${panel.y})`
+    }, parent);
+    svgEl('rect', {
+      width: panel.w, height: panel.h, rx: 18,
+      fill: 'rgba(15,118,110,0.032)', stroke: '#d3e6df', 'stroke-width': 1
+    }, g);
+    svgText(g, 22, 32, panel.title, { 'font-size': 12, 'font-weight': 700, fill: '#2e574b', 'font-family': FONT, 'letter-spacing': '0.04em' });
+    (panel.footer || []).forEach((line, i) => {
+      svgText(g, 22, panel.h - 30 + i * 16, line, { 'font-size': 9.2, fill: '#7d9189', 'font-family': FONT });
+    });
+  }
+
+  function edgeTone(edge) {
+    if (edge.tone) return edge.tone;
+    const p = String(edge.protocol || '');
+    if (/JDBC|SQL/i.test(p)) return 'indigo';
+    if (/file|文件/i.test(p)) return 'slate';
+    if (/in-process/i.test(p)) return 'amber';
+    if (/HMAC|mock-consumer|open-data/i.test(p)) return 'teal';
+    return 'teal';
+  }
+
+  function labelAnchor(points) {
+    let best = null;
+    for (let i = 0; i < points.length - 1; i++) {
+      const a = points[i];
+      const b = points[i + 1];
+      const len = Math.hypot(b.x - a.x, b.y - a.y);
+      if (!best || len > best.len) best = { a: a, b: b, len: len };
+    }
+    if (!best) return { x: points[0].x, y: points[0].y, horizontal: true };
+    return {
+      x: (best.a.x + best.b.x) / 2,
+      y: (best.a.y + best.b.y) / 2,
+      horizontal: Math.abs(best.b.x - best.a.x) >= Math.abs(best.b.y - best.a.y)
+    };
+  }
+
+  function drawEdge(edge, edgeLayer, labelLayer, view) {
+    const from = findInView(view, edge.from);
+    const to = findInView(view, edge.to);
+    if (!from || !to) return null;
+    const start = port(from, (edge.fromPort && edge.fromPort.side) || 'r', edge.fromPort ? edge.fromPort.at : 0.5);
+    const end = port(to, (edge.toPort && edge.toPort.side) || 'l', edge.toPort ? edge.toPort.at : 0.5);
+    const via = (edge.via || []).map((point) => Array.isArray(point) ? { x: point[0], y: point[1] } : point);
+    const points = dedupePoints([start].concat(via).concat([end]));
+    const d = roundedPath(points, 10);
+    const tone = edgeTone(edge);
+    const g = svgEl('g', { class: `edge edge-${tone}`, 'data-id': edge.id, 'data-view': view.id }, edgeLayer);
+    const lineAttrs = {
+      d: d,
+      fill: 'none',
+      stroke: PALETTE[tone],
+      'stroke-width': 1.7,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      'marker-end': `url(#arrow-${tone}-${view.id})`
+    };
+    if (edge.both) lineAttrs['marker-start'] = `url(#arrow-${tone}-${view.id})`;
+    if (edge.dashed) lineAttrs['stroke-dasharray'] = '6 5';
+    svgEl('path', lineAttrs, g);
+    svgEl('path', {
+      d: d,
+      fill: 'none',
+      stroke: 'transparent',
+      'stroke-width': 18,
+      'stroke-linecap': 'round',
+      class: 'edge-hit'
+    }, g);
+
+    const anchor = labelAnchor(points);
+    let lx = anchor.x;
+    let ly = anchor.y;
+    if (anchor.horizontal) ly -= 13;
+    else lx += 12;
+    if (edge.labelDx) lx += edge.labelDx;
+    if (edge.labelDy) ly += edge.labelDy;
+
+    const lines = (edge.labelLines && edge.labelLines.length ? edge.labelLines : [edge.label || '']).filter(Boolean);
+    if (lines.length) {
+      const size = 9.2;
+      const widths = lines.map((line) => measure(line, size));
+      const boxW = Math.max.apply(null, widths) + 16;
+      const boxH = lines.length * 12 + 9;
+      lx = Math.max(boxW / 2 + 5, Math.min(view.width - boxW / 2 - 5, lx));
+      ly = Math.max(boxH / 2 + 5, Math.min(view.height - boxH / 2 - 5, ly));
+      const label = svgEl('g', {
+        class: 'edge-label',
+        transform: `translate(${lx} ${ly})`,
+        'data-id': edge.id,
+        'data-view': view.id
+      }, labelLayer);
+      svgEl('rect', {
+        x: -boxW / 2, y: -boxH / 2, width: boxW, height: boxH, rx: 6,
+        fill: '#ffffff', stroke: '#d8e4df', 'stroke-width': 1, opacity: 0.97
+      }, label);
+      lines.forEach((line, i) => {
+        svgText(label, 0, -boxH / 2 + 13 + i * 12, line, {
+          'text-anchor': 'middle',
+          'font-size': size,
+          'font-weight': 600,
+          fill: '#3d5a51',
+          'font-family': FONT
+        });
+      });
+      const open = (event) => {
+        event.stopPropagation();
+        openEdge(edge, view);
+      };
+      label.addEventListener('click', open);
+      g.addEventListener('click', open);
+      label.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openEdge(edge, view); }
+      });
+    } else {
+      g.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openEdge(edge, view);
+      });
+    }
+    return g;
+  }
+
+  function drawIcon(parent, kind, x, y, size, accent) {
+    const tile = svgEl('g', { transform: `translate(${x} ${y})` }, parent);
+    svgEl('rect', { width: size, height: size, rx: size * 0.28, fill: accent, 'fill-opacity': 0.10 }, tile);
+    const icon = svgEl('g', {
+      transform: `translate(${size * 0.22} ${size * 0.22}) scale(${(size * 0.56) / 24})`,
+      fill: 'none',
+      stroke: accent,
+      'stroke-width': 1.8,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    }, tile);
+    icon.innerHTML = ICONS[kind] || ICONS.module;
+  }
+
+  function drawLinkGlyph(parent, x, y, color) {
+    const g = svgEl('g', { transform: `translate(${x} ${y}) scale(0.72)`, opacity: 0.55 }, parent);
+    svgEl('path', {
+      d: 'M3 11 L11 3 M5 3 H11 V9',
+      fill: 'none', stroke: color, 'stroke-width': 1.6,
+      'stroke-linecap': 'round', 'stroke-linejoin': 'round'
+    }, g);
+  }
+
+  function drawNode(node, parent, view) {
+    const style = KIND_STYLE[node.kind] || KIND_STYLE.module;
+    const g = svgEl('g', {
+      class: `node kind-${node.kind}`,
+      'data-id': node.id,
+      'data-view': view.id,
+      tabindex: '0',
+      role: 'button',
+      transform: `translate(${node.x} ${node.y})`
+    }, parent);
+
+    const isChip = node.kind === 'chip';
+    const isModule = node.kind === 'module';
+    const isStore = node.kind === 'store' && Array.isArray(node.lines);
+    const rx = isChip ? 12 : isModule ? 12 : 14;
+    const card = svgEl('rect', {
+      class: 'card', width: node.w, height: node.h, rx: rx,
+      fill: style.fill, stroke: style.stroke, 'stroke-width': 1.2
+    }, g);
+    if (style.dash) card.setAttribute('stroke-dasharray', style.dash);
+    if (!isChip && !isModule) card.setAttribute('filter', `url(#soft-${view.id})`);
+
+    if (isModule) {
+      svgEl('rect', { x: 0, y: 14, width: 4, height: node.h - 28, rx: 2, fill: style.accent }, g);
+    }
+    if (isChip) {
+      svgEl('rect', { x: 0, y: 0, width: node.w, height: 3, rx: 1.5, fill: style.accent, opacity: 0.55 }, g);
+    }
+
+    const confColor = CONF_COLOR[node.confidence] || CONF_COLOR.medium;
+
+    if (isChip) {
+      const titleSize = 12.6;
+      const subSize = 9.3;
+      svgText(g, node.w / 2, node.h > 56 ? 25 : 21, node.title, {
+        'text-anchor': 'middle', 'font-size': titleSize, 'font-weight': 650,
+        fill: '#16382e', 'font-family': FONT
+      });
+      const subs = wrapByWidth(node.subtitle || '', node.w - 22, subSize, 1);
+      svgText(g, node.w / 2, node.h > 56 ? 43 : 38, subs[0] || '', {
+        'text-anchor': 'middle', 'font-size': subSize, fill: '#70867d', 'font-family': FONT
+      });
+      if (node.link) drawLinkGlyph(g, node.w - 17, 7, style.accent);
+      svgEl('circle', { cx: node.w - 10, cy: node.h - 9, r: 2.7, fill: confColor, opacity: 0.9 }, g);
+    } else if (isModule) {
+      const titleLines = wrapByWidth(node.title, node.w - 30, 12.6, 1);
+      svgText(g, 16, 24, titleLines[0], {
+        'font-size': 12.6, 'font-weight': 650, fill: '#15352c', 'font-family': FONT
+      });
+      const subs = wrapByWidth(node.subtitle || '', node.w - 30, 10, 2);
+      subs.forEach((line, i) => {
+        svgText(g, 16, 42 + i * 13, line, { 'font-size': 10, fill: '#6b8179', 'font-family': FONT });
+      });
+      svgEl('circle', { cx: node.w - 10, cy: node.h - 9, r: 2.7, fill: confColor, opacity: 0.9 }, g);
+    } else if (isStore) {
+      drawIcon(g, 'store', 15, 14, 34, style.accent);
+      svgText(g, 60, 34, node.title, { 'font-size': 15.5, 'font-weight': 700, fill: '#172f28', 'font-family': FONT });
+      const subs = wrapByWidth(node.subtitle || '', node.w - 78, 9.8, 2);
+      subs.forEach((line, i) => {
+        svgText(g, 60, 53 + i * 12, line, { 'font-size': 9.8, fill: '#6f827c', 'font-family': MONO });
+      });
+      if (node.badge) {
+        svgText(g, node.w - 14, 18, node.badge, {
+          'text-anchor': 'end', 'font-size': 8.3, fill: '#8a9b95', 'font-family': MONO, 'letter-spacing': '0.04em'
+        });
+      }
+      svgEl('line', { x1: 18, y1: 88, x2: node.w - 18, y2: 88, stroke: '#e1e8f3', 'stroke-width': 1 }, g);
+      let y = 108;
+      node.lines.forEach((row) => {
+        svgText(g, 18, y, row[0], { 'font-size': 9.8, 'font-weight': 700, fill: style.accent, 'font-family': FONT });
+        const rows = wrapByWidth(row[1], node.w - 36, 9.1, 2);
+        rows.forEach((line, i) => {
+          svgText(g, 18, y + 14 + i * 11.5, line, { 'font-size': 9.1, fill: '#647a72', 'font-family': FONT });
+        });
+        y += 16 + rows.length * 11.5 + 9;
+      });
+      svgEl('circle', { cx: node.w - 12, cy: node.h - 11, r: 3, fill: confColor, opacity: 0.9 }, g);
+    } else {
+      const iconSize = node.kind === 'note' ? 26 : 32;
+      const iconX = 14;
+      const iconY = node.kind === 'note' ? 19 : node.kind === 'container' ? 16 : 17;
+      drawIcon(g, node.kind === 'boundary' ? 'module' : node.kind, iconX, iconY, iconSize, style.accent);
+      const tx = iconX + iconSize + 12;
+      const titleY = node.kind === 'note' ? 27 : node.kind === 'container' ? 34 : 31;
+      const titleSize = node.kind === 'note' ? 12.6 : node.kind === 'container' || node.kind === 'store' ? 16 : 14.6;
+      const badgeSpace = node.badge ? 88 : 14;
+      const titleLines = wrapByWidth(node.title, node.w - tx - badgeSpace, titleSize, 1);
+      svgText(g, tx, titleY, titleLines[0], {
+        'font-size': titleSize, 'font-weight': 650, fill: '#172f28', 'font-family': FONT
+      });
+      if (node.badge) {
+        svgText(g, node.w - 14, 18, node.badge, {
+          'text-anchor': 'end', 'font-size': 8.3, fill: '#8a9b95', 'font-family': MONO, 'letter-spacing': '0.04em'
+        });
+      }
+      const subSize = node.kind === 'note' ? 9.7 : 10.7;
+      const subTop = node.kind === 'note' ? 45 : node.kind === 'container' ? 56 : 52;
+      const subLines = node.kind === 'note' ? 1 : 2;
+      const subMax = node.w - tx - 32;
+      const subs = wrapByWidth(node.subtitle || '', subMax, subSize, subLines);
+      subs.forEach((line, i) => {
+        svgText(g, tx, subTop + i * 14, line, {
+          'font-size': subSize, fill: '#657b73', 'font-family': FONT
+        });
+      });
+      if (node.kind === 'container' && Array.isArray(node.tech)) {
+        const tech = node.tech.join(' · ');
+        let text = tech;
+        while (text && measure(text, 9.1) > node.w - 30) text = text.slice(0, -1);
+        if (text !== tech) text = text.replace(/\s+$/, '') + '…';
+        svgText(g, 15, node.h - 13, text, { 'font-size': 9.1, fill: '#8a9b95', 'font-family': MONO });
+      }
+      if (Array.isArray(node.footer) && node.footer.length) {
+        node.footer.forEach((line, i) => {
+          let text = line;
+          while (text && measure(text, 9) > node.w - tx - 28) text = text.slice(0, -1);
+          if (text !== line) text = text.replace(/\s+$/, '') + '…';
+          const y = node.h - 14 - (node.footer.length - 1 - i) * 12;
+          svgText(g, tx, y, text, { 'font-size': 9, fill: '#8a9b95', 'font-family': FONT });
+        });
+      }
+      if (node.kind === 'note' && node.link) drawLinkGlyph(g, node.w - 18, 8, style.accent);
+      svgEl('circle', { cx: 14, cy: node.h - 10, r: 2.9, fill: confColor, opacity: 0.9 }, g);
+    }
+
+    g.addEventListener('click', (event) => {
+      event.stopPropagation();
+      openNode(node, view);
+    });
+    g.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openNode(node, view);
+      }
+    });
+    g.addEventListener('mouseenter', () => focusNode(node.id, view));
+    g.addEventListener('mouseleave', () => clearFocus(view));
+    g.addEventListener('focus', () => focusNode(node.id, view));
+    g.addEventListener('blur', () => clearFocus(view));
+  }
+
+  function focusNode(id, view) {
+    const svg = document.querySelector(`#view-${view.id} svg`);
+    if (!svg) return;
+    const ids = new Set([id]);
+    view.edges.forEach((edge) => {
+      if (edge.from === id) ids.add(edge.to);
+      if (edge.to === id) ids.add(edge.from);
+    });
+    $$('.node', svg).forEach((node) => {
+      node.classList.toggle('dim', !ids.has(node.dataset.id));
+      node.classList.toggle('hl', node.dataset.id === id);
+    });
+    $$('.edge', svg).forEach((edgeGroup) => {
+      const edge = view.edges.find((item) => item.id === edgeGroup.dataset.id);
+      const connected = edge && (edge.from === id || edge.to === id);
+      edgeGroup.classList.toggle('dim', !connected);
+      edgeGroup.classList.toggle('hl', !!connected);
+    });
+  }
+
+  function clearFocus(view) {
+    const svg = document.querySelector(`#view-${view.id} svg`);
+    if (!svg) return;
+    $$('.node,.edge', svg).forEach((node) => node.classList.remove('dim', 'hl'));
+  }
+
+  function bindStage(section, view) {
+    const stage = $('.stage', section);
+    const svg = $('svg', section);
+    const canvas = $('.canvas', svg);
+    const zoomLabel = $('.zoom-label', stage);
+    const t = state.transforms[view.id] = { k: 1, x: 0, y: 0 };
+    let dragging = false;
+    let dragStarted = false;
+    let last = null;
+    let moved = 0;
+
+    function apply() {
+      canvas.setAttribute('transform', `translate(${t.x} ${t.y}) scale(${t.k})`);
+      if (zoomLabel) zoomLabel.textContent = Math.round(t.k * 100) + '%';
+    }
+
+    function toSvgPoint(clientX, clientY) {
+      const pt = svg.createSVGPoint();
+      pt.x = clientX;
+      pt.y = clientY;
+      const matrix = svg.getScreenCTM();
+      return matrix ? pt.matrixTransform(matrix.inverse()) : { x: clientX, y: clientY };
+    }
+
+    function zoomAt(point, factor) {
+      const next = Math.max(0.35, Math.min(3, t.k * factor));
+      t.x = point.x - (point.x - t.x) * (next / t.k);
+      t.y = point.y - (point.y - t.y) * (next / t.k);
+      t.k = next;
+      apply();
+    }
+
+    stage.addEventListener('wheel', (event) => {
+      event.preventDefault();
+      const point = toSvgPoint(event.clientX, event.clientY);
+      zoomAt(point, event.deltaY < 0 ? 1.12 : 1 / 1.12);
+    }, { passive: false });
+
+    stage.addEventListener('pointerdown', (event) => {
+      if (event.button !== 0) return;
+      if (event.target.closest('.node,.edge,[data-zoom],.legend-card')) return;
+      dragging = true;
+      dragStarted = false;
+      moved = 0;
+      last = toSvgPoint(event.clientX, event.clientY);
+    });
+
+    stage.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const point = toSvgPoint(event.clientX, event.clientY);
+      const dx = point.x - last.x;
+      const dy = point.y - last.y;
+      if (!dragStarted) {
+        if (Math.abs(dx) + Math.abs(dy) < 3) return;
+        dragStarted = true;
+        stage.setPointerCapture(event.pointerId);
+        stage.classList.add('dragging');
+      }
+      t.x += dx;
+      t.y += dy;
+      moved += Math.abs(dx) + Math.abs(dy);
+      last = point;
+      apply();
+    });
+
+    function endDrag(event) {
+      if (!dragging) return;
+      dragging = false;
+      dragStarted = false;
+      stage.classList.remove('dragging');
+      try { stage.releasePointerCapture(event.pointerId); } catch (e) { /* noop */ }
+    }
+    stage.addEventListener('pointerup', endDrag);
+    stage.addEventListener('pointercancel', endDrag);
+
+    stage.addEventListener('click', (event) => {
+      if (moved > 5) {
+        event.stopPropagation();
+        event.preventDefault();
+        moved = 0;
+        return;
+      }
+      if (event.target.closest('.node,.edge,.edge-label,.boundary,[data-zoom],.legend-card')) return;
+      closeDrawer();
+    }, true);
+
+    $$('[data-zoom]', stage).forEach((button) => {
+      button.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const action = button.dataset.zoom;
+        if (action === 'fit') {
+          t.k = 1; t.x = 0; t.y = 0; apply();
+          return;
+        }
+        const rect = stage.getBoundingClientRect();
+        const center = toSvgPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+        zoomAt(center, action === 'in' ? 1.18 : 1 / 1.18);
+      });
+    });
+
+    if (window.matchMedia('(max-width: 900px)').matches) {
+      const focusX = view.id === 'context' ? 720 : 870;
+      t.k = 1;
+      t.x = view.width / 2 - focusX;
+      t.y = 0;
+    }
+
+    apply();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* flows                                                               */
+  /* ------------------------------------------------------------------ */
+
+  function buildFlows() {
+    const workspace = $('#workspace');
+    const section = el('section', 'view scroll-view', workspace);
+    section.id = 'view-flows';
+    const totalSteps = MODEL.flowView.flows.reduce((sum, flow) => sum + flow.steps.length, 0);
+    section.innerHTML = `
+      <div class="view-head">
+        <div class="head-left">
+          <div class="kicker"><span class="level-pill">FLOW</span> END-TO-END · CURRENT STATE</div>
+          <h2>${esc(MODEL.flowView.title)}</h2>
+          <p>${esc(MODEL.flowView.caption)}</p>
+        </div>
+        <div class="head-stats">
+          <div class="stat"><b>${MODEL.flowView.flows.length}</b><span>条链路</span></div>
+          <div class="stat"><b>${totalSteps}</b><span>个步骤</span></div>
+          <div class="stat"><b>${MODEL.flowView.tracks.length}</b><span>条状态机</span></div>
+        </div>
+      </div>
+      <div class="scroll-body" id="flow-body"></div>`;
+    const body = $('#flow-body', section);
+
+    MODEL.flowView.flows.forEach((flow) => {
+      const cols = flow.id === 'business' ? 4 : 3;
+      const flowSection = el('section', 'flow-section', body);
+      flowSection.innerHTML = `
+        <div class="flow-head">
+          <div>
+            <h3>${esc(flow.title)}</h3>
+            <p>${esc(flow.subtitle)}</p>
+          </div>
+          <span class="flow-tag">${flow.steps.length} STEPS</span>
+        </div>
+        <div class="flow-body"></div>`;
+      const flowBody = $('.flow-body', flowSection);
+      const rows = chunk(flow.steps, cols);
+      rows.forEach((row, rowIndex) => {
+        const rowEl = el('div', 'flow-row', flowBody);
+        row.forEach((step) => {
+          const laneClass = LANE_CLASS[step.lane] || 'lane-slate';
+          const card = el('article', 'flow-step', rowEl);
+          card.tabIndex = 0;
+          card.setAttribute('role', 'button');
+          card.dataset.search = [flow.title, step.lane, step.title, step.desc, step.artifact].join(' ');
+          card.innerHTML = `
+            <div class="step-top">
+              <span class="step-no">${String(step.n).padStart(2, '0')}</span>
+              <span class="lane ${laneClass}">${esc(step.lane)}</span>
+            </div>
+            <h4>${esc(step.title)}</h4>
+            <p>${esc(step.desc)}</p>
+            <code>${esc(step.artifact)}</code>
+            <div class="step-foot">
+              <span class="conf ${esc(step.confidence)}">${esc(CONF_LABEL[step.confidence] || step.confidence)}</span>
+              <span class="more">查看证据</span>
+            </div>`;
+          card.addEventListener('click', () => openStep(flow, step));
+          card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              openStep(flow, step);
+            }
+          });
+        });
+        if (rowIndex < rows.length - 1) {
+          const turn = el('div', 'flow-turn', flowBody);
+          turn.innerHTML = '<span>↓ 下一行继续</span>';
+        }
+      });
+    });
+
+    const trackPanel = el('section', 'track-panel', body);
+    trackPanel.innerHTML = `<h3>状态机与人工边界</h3>` + MODEL.flowView.tracks.map((track) => {
+      const states = track.states.map((state, i) => {
+        const terminal = i === track.states.length - 1;
+        const pill = `<span class="state${terminal ? ' terminal' : ''}">${esc(state)}</span>`;
+        return i < track.states.length - 1 ? pill + '<span class="track-arrow">→</span>' : pill;
+      }).join('');
+      return `<div class="track">
+        <div class="track-name">${esc(track.name)}</div>
+        <div class="track-states">${states}</div>
+        <div class="track-note">${esc(track.note)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function chunk(items, size) {
+    const result = [];
+    for (let i = 0; i < items.length; i += size) result.push(items.slice(i, i + size));
+    return result;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* data                                                                */
+  /* ------------------------------------------------------------------ */
+
+  function buildData() {
+    const workspace = $('#workspace');
+    const section = el('section', 'view scroll-view', workspace);
+    section.id = 'view-data';
+    const tables = MODEL.dataView.domains.reduce((sum, domain) => sum + domain.tables.length, 0);
+    section.innerHTML = `
+      <div class="view-head">
+        <div class="head-left">
+          <div class="kicker"><span class="level-pill">DATA</span> DATA ASSETS · KEY RULES</div>
+          <h2>${esc(MODEL.dataView.title)}</h2>
+          <p>${esc(MODEL.dataView.caption)}</p>
+        </div>
+        <div class="head-stats">
+          <div class="stat"><b>${tables}</b><span>张表</span></div>
+          <div class="stat"><b>${MODEL.dataView.domains.length}</b><span>个域</span></div>
+          <div class="stat"><b>${MODEL.dataView.algorithms.length}</b><span>组口径</span></div>
+        </div>
+      </div>
+      <div class="scroll-body">
+        <div class="section-title"><h2>数据域</h2><span>25 张 H2 表 · 6 个域 · 演示数据口径随采集与回测变化</span></div>
+        <div class="domain-grid" id="domain-grid"></div>
+        <div class="section-title"><h2>关键口径</h2><span>规则、优先级、风险分级与 AI 置信度</span></div>
+        <div class="algo-grid" id="algo-grid"></div>
+      </div>`;
+    const domainGrid = $('#domain-grid', section);
+    MODEL.dataView.domains.forEach((domain) => {
+      const card = el('article', `domain-card tone-${domain.tone}`, domainGrid);
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.dataset.search = [domain.name, domain.key].concat(domain.tables.map((t) => t.name + ' ' + t.note)).join(' ');
+      card.innerHTML = `
+        <div class="domain-head">
+          <div>
+            <h3>${esc(domain.name)}</h3>
+            <span class="count">${domain.count} TABLES</span>
+          </div>
+          <span class="tone-dot"></span>
+        </div>
+        <ul class="table-list">
+          ${domain.tables.map((table) => `<li><code>${esc(table.name)}</code><span>${esc(table.note)}</span></li>`).join('')}
+        </ul>
+        <div class="domain-key">${esc(domain.key)}</div>
+        <div class="domain-foot"><span>证据 ${domain.evidence.length} 条</span><span>查看数据域 →</span></div>`;
+      card.addEventListener('click', () => openDomain(domain));
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openDomain(domain);
+        }
+      });
+    });
+
+    const algoGrid = $('#algo-grid', section);
+    MODEL.dataView.algorithms.forEach((algo) => {
+      const card = el('article', 'algo-card', algoGrid);
+      card.tabIndex = 0;
+      card.setAttribute('role', 'button');
+      card.dataset.search = [algo.title].concat(algo.lines).join(' ');
+      card.innerHTML = `
+        <h3>${esc(algo.title)}</h3>
+        <ul>${algo.lines.map((line) => `<li>${esc(line)}</li>`).join('')}</ul>
+        <div class="domain-foot"><span>证据 ${algo.evidence.length} 条</span><span>查看口径 →</span></div>`;
+      card.addEventListener('click', () => openAlgorithm(algo));
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          openAlgorithm(algo);
+        }
+      });
+    });
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* drawer                                                              */
+  /* ------------------------------------------------------------------ */
+
+  const drawer = $('#drawer');
+  const drawerBody = $('#drawer-body');
+
+  function showDrawer(entity, meta) {
+    const data = Object.assign({}, entity);
+    const kindLabel = KIND_LABEL[data.kind] || '对象';
+    const confidence = data.confidence || 'medium';
+    const badges = [];
+    badges.push(`<span class="badge conf-${esc(confidence)}">${esc(CONF_LABEL[confidence] || confidence)}</span>`);
+    if (data.badge) badges.push(`<span class="badge">${esc(data.badge)}</span>`);
+    if (data.lane) badges.push(`<span class="badge">${esc(data.lane)}</span>`);
+    if (data.state) badges.push(`<span class="badge">${esc(STATE_LABEL[data.state] || data.state)}</span>`);
+    if (data.protocol) badges.push(`<span class="badge">${esc(data.protocol)}</span>`);
+    if (data.sync) badges.push(`<span class="badge">${esc(data.sync === 'sync' ? '同步' : data.sync === 'async' ? '异步' : data.sync)}</span>`);
+
+    const items = Array.isArray(data.items) ? data.items : [];
+    const tech = Array.isArray(data.tech) ? data.tech : [];
+    const evidence = Array.isArray(data.evidence) ? data.evidence : [];
+
+    const sections = [];
+    if (items.length) {
+      sections.push(`<div class="drawer-section"><h3>职责与内容</h3><ul>${items.map((item) => `<li>${esc(item)}</li>`).join('')}</ul></div>`);
+    }
+    if (tech.length) {
+      sections.push(`<div class="drawer-section"><h3>技术 / 协议</h3><div class="chips">${tech.map((item) => `<span class="chip">${esc(item)}</span>`).join('')}</div></div>`);
+    }
+    if (evidence.length) {
+      sections.push(`<div class="drawer-section"><h3>证据来源 · ${evidence.length}</h3><ul class="evidence">${evidence.map((ref) => {
+        const split = splitRef(ref);
+        return `<li data-ref="${esc(ref)}" title="点击复制路径"><span class="ev-path">${esc(split.path)}</span><span class="ev-line">${esc(split.suffix)}</span></li>`;
+      }).join('')}</ul></div>`);
+    }
+
+    const actions = [];
+    if (data.link) {
+      actions.push(`<button type="button" class="primary" data-goto="${esc(data.link.view)}:${esc(data.link.id)}">在容器视图查看</button>`);
+    }
+    if (actions.length) sections.push(`<div class="drawer-actions">${actions.join('')}</div>`);
+
+    $('#drawer-kind').textContent = `${kindLabel} · ${meta && meta.scope ? meta.scope : '当前状态'}`;
+    $('#drawer-title').textContent = data.title || '';
+    drawerBody.innerHTML = `
+      <div class="badge-row">${badges.join('')}</div>
+      <p class="lede">${esc(data.summary || '')}</p>
+      ${sections.join('')}`;
+
+    $$('.evidence li', drawerBody).forEach((item) => {
+      item.addEventListener('click', () => {
+        copyText(item.dataset.ref);
+        toast('已复制：' + item.dataset.ref);
+      });
+    });
+    const goto = $('[data-goto]', drawerBody);
+    if (goto) {
+      goto.addEventListener('click', () => {
+        const parts = goto.dataset.goto.split(':');
+        switchView(parts[0]);
+        setTimeout(() => {
+          const found = findEntity(parts[1], parts[0]);
+          if (found) {
+            openNode(found.entity, found.view);
+            flash(parts[1], parts[0]);
+          }
+        }, 80);
+      });
+    }
+
+    drawer.classList.add('open');
+    drawer.setAttribute('aria-hidden', 'false');
+    drawerBody.scrollTop = 0;
+  }
+
+  function openNode(node, view) {
+    const entity = Object.assign({}, node, { kind: node.kind === 'boundary' ? 'boundary' : node.kind });
+    markSelected('node', entity, view);
+    showDrawer(entity, { scope: '当前状态' });
+  }
+
+  function openEdge(edge, view) {
+    const from = findInView(view, edge.from);
+    const to = findInView(view, edge.to);
+    const entity = {
+      kind: 'edge',
+      title: `${from ? from.title : edge.from} → ${to ? to.title : edge.to}`,
+      summary: edge.summary,
+      protocol: edge.protocol,
+      sync: edge.sync,
+      label: edge.labelLines ? edge.labelLines.join(' / ') : edge.label,
+      evidence: edge.evidence,
+      confidence: edge.confidence || 'medium',
+      badge: '调用 / 数据流',
+      state: 'current'
+    };
+    showDrawer(entity, { scope: '调用 / 数据流' });
+    markSelected('edge', entity, view, edge.id);
+  }
+
+  function openStep(flow, step) {
+    showDrawer({
+      kind: 'step',
+      title: step.title,
+      summary: step.summary || step.desc,
+      items: [step.desc],
+      tech: [step.artifact],
+      evidence: step.evidence,
+      confidence: step.confidence,
+      lane: step.lane,
+      badge: flow.title,
+      state: 'current'
+    }, { scope: `第 ${step.n} 步` });
+    clearSelection();
+  }
+
+  function openDomain(domain) {
+    showDrawer({
+      kind: 'domain',
+      title: domain.name,
+      summary: domain.key,
+      items: domain.tables.map((table) => `${table.name} — ${table.note}`),
+      tech: [`${domain.count} 张表`, 'H2 · JdbcTemplate'],
+      evidence: domain.evidence,
+      confidence: 'high',
+      state: 'current'
+    }, { scope: '数据域' });
+    clearSelection();
+  }
+
+  function openAlgorithm(algo) {
+    showDrawer({
+      kind: 'algorithm',
+      title: algo.title,
+      summary: '当前原型中的确定性口径，可在代码中复核。',
+      items: algo.lines,
+      tech: ['可复现', 'risk-v1 / mock-rag-v1'],
+      evidence: algo.evidence,
+      confidence: 'high',
+      state: 'current'
+    }, { scope: '关键口径' });
+    clearSelection();
+  }
+
+  function markSelected(type, entity, view, edgeId) {
+    clearSelection();
+    if (!view) return;
+    const svg = document.querySelector(`#view-${view.id} svg`);
+    if (!svg) return;
+    const selector = type === 'edge' ? '.edge' : '.node,.boundary';
+    $$(selector, svg).forEach((group) => {
+      const match = type === 'edge' ? group.dataset.id === edgeId : group.dataset.id === entity.id;
+      if (match) group.classList.add('selected');
+    });
+  }
+
+  function clearSelection() {
+    $$('.node.selected,.edge.selected,.boundary.selected').forEach((node) => node.classList.remove('selected'));
+  }
+
+  function flash(id, viewId) {
+    const svg = document.querySelector(`#view-${viewId} svg`);
+    if (!svg) return;
+    const group = $$('.node,.boundary', svg).find((node) => node.dataset.id === id);
+    if (!group) return;
+    group.classList.add('flash');
+    setTimeout(() => group.classList.remove('flash'), 1500);
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    drawer.setAttribute('aria-hidden', 'true');
+    clearSelection();
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function splitRef(ref) {
+    const text = String(ref || '');
+    const idx = text.lastIndexOf(':');
+    if (idx > 0 && /^\d+(-\d+)?$/.test(text.slice(idx + 1))) {
+      return { path: text.slice(0, idx), suffix: text.slice(idx) };
+    }
+    return { path: text, suffix: '' };
+  }
+
+  function fallbackCopy(text) {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+    try { document.execCommand('copy'); } catch (e) { /* noop */ }
+    document.body.removeChild(area);
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* help / actions / search                                             */
+  /* ------------------------------------------------------------------ */
+
+  function renderHelp() {
+    const notes = MODEL.notes.boundaries;
+    const body = $('#help-body');
+    body.innerHTML = `
+      <h3>这张图回答什么</h3>
+      <p>回答“当前原型的系统边界、主要容器与模块、关键业务闭环、数据资产与口径”。范围是 fixed-source-platform 当前状态，不包含目标架构或生产化设计。图中同时保留模拟系统与逻辑边界，避免把“同进程 Mock”误读为独立部署单元。</p>
+      <h3>读图约定</h3>
+      <div class="grid-2">
+        <div><p><b>节点形状</b>：角色、容器、模块、数据存储、外部系统与知识源使用不同图标和边框；虚线边框表示模拟或逻辑外部。</p></div>
+        <div><p><b>连线</b>：实线为代码或配置直接支持的关系；虚线为模拟、推断或待验证关系。箭头表示调用或数据方向，双向箭头表示请求与回执。</p></div>
+        <div><p><b>圆点</b>：节点右下角的小圆点表示证据置信度，绿色为高、橙色为中、红色为低。</p></div>
+        <div><p><b>交互</b>：滚轮缩放、拖拽平移、点击节点或连线查看职责、协议与证据；点击证据行可复制路径。</p></div>
+      </div>
+      <h3>证据与置信度</h3>
+      <ul>
+        <li><b>高</b>：代码、配置、Schema、Docker 清单或运行入口直接支持。</li>
+        <li><b>中</b>：多处间接信号一致，或来自 README 的演示数据口径。</li>
+        <li><b>低</b>：由命名、目录结构或业务惯例推断。</li>
+        <li><b>待验证</b>：当前环境无法确认，例如 Android 真机相机与 UI 验收。</li>
+      </ul>
+      <h3>已知边界与验证项</h3>
+      ${notes.map((note) => `<div class="note-item">
+        <div class="note-head"><b>${esc(note.title)}</b><span class="badge conf-${esc(note.confidence)}">${esc(CONF_LABEL[note.confidence] || note.confidence)}</span></div>
+        <p>${esc(note.text)}</p>
+      </div>`).join('')}
+      <h3>生成信息</h3>
+      <p>生成日期 ${esc(MODEL.meta.generatedAt)}；模型源文件 <code>architecture/system-model.json</code>；全图共 ${computeEvidenceCount()} 条独立证据引用。同目录另附 <code>system-model.evidence.md</code>（证据索引）与 <code>system-model.summary.md</code>（架构说明）。源码路径均相对 <code>fixed-source-platform/</code>。</p>`;
+  }
+
+  function bindActions() {
+    $$('[data-action]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const action = button.dataset.action;
+        if (action === 'help') openHelp();
+        if (action === 'print') window.print();
+        if (action === 'export') exportSvg();
+      });
+    });
+    $('[data-close-drawer]').addEventListener('click', closeDrawer);
+    $('[data-close-help]').addEventListener('click', closeHelp);
+    $('#help-modal').addEventListener('click', (event) => {
+      if (event.target.id === 'help-modal') closeHelp();
+    });
+    const search = $('#search');
+    search.addEventListener('input', () => {
+      state.search = search.value;
+      clearFocusAll();
+      applySearch();
+    });
+    search.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        search.value = '';
+        state.search = '';
+        applySearch();
+        search.blur();
+      }
+    });
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        if ($('#help-modal').classList.contains('open')) closeHelp();
+        else closeDrawer();
+      }
+      if (event.key === '/' && document.activeElement !== search) {
+        event.preventDefault();
+        search.focus();
+      }
+    });
+  }
+
+  function switchView(id) {
+    state.active = id;
+    $$('.tab').forEach((tab) => {
+      const active = tab.dataset.view === id;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+    });
+    $$('.view').forEach((view) => view.classList.toggle('active', view.id === 'view-' + id));
+    closeDrawer();
+    applySearch();
+  }
+
+  function applySearch() {
+    const query = state.search.trim().toLowerCase();
+    const countEl = $('#search-count');
+    const activeView = 'view-' + state.active;
+    let count = 0;
+
+    $$('.node').forEach((group) => {
+      if (group.dataset.view !== state.active) {
+        group.classList.remove('search-hit', 'search-miss');
+        return;
+      }
+      const found = findEntity(group.dataset.id, group.dataset.view);
+      const entity = found ? found.entity : null;
+      const haystack = entity
+        ? [entity.title, entity.subtitle, entity.summary, (entity.tech || []).join(' '), (entity.items || []).join(' ')].join(' ').toLowerCase()
+        : '';
+      const hit = !!query && haystack.includes(query);
+      group.classList.toggle('search-hit', hit);
+      group.classList.toggle('search-miss', !!query && !hit);
+      if (hit) count++;
+    });
+
+    $$('.flow-step,.domain-card,.algo-card').forEach((card) => {
+      const scope = card.closest('.view');
+      if (!scope || scope.id !== activeView) {
+        card.classList.remove('search-hit', 'search-miss');
+        return;
+      }
+      const haystack = String(card.dataset.search || '').toLowerCase();
+      const hit = !!query && haystack.includes(query);
+      card.classList.toggle('search-hit', hit);
+      card.classList.toggle('search-miss', !!query && !hit);
+      if (hit) count++;
+    });
+
+    countEl.textContent = query ? String(count) : '';
+  }
+
+  function clearFocusAll() {
+    $$('.node,.edge').forEach((node) => node.classList.remove('dim', 'hl'));
+  }
+
+  function openHelp() {
+    const modal = $('#help-modal');
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeHelp() {
+    const modal = $('#help-modal');
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  function toast(message) {
+    const box = $('#toast');
+    box.textContent = message;
+    box.classList.add('show');
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => box.classList.remove('show'), 2200);
+  }
+
+  function exportSvg() {
+    const view = MODEL.views.find((item) => item.id === state.active);
+    if (!view) {
+      toast('流程与数据视图请使用“打印”导出 PDF');
+      return;
+    }
+    const source = document.querySelector(`#view-${view.id} svg`);
+    const clone = source.cloneNode(true);
+    clone.setAttribute('xmlns', NS);
+    clone.setAttribute('width', view.width);
+    clone.setAttribute('height', view.height);
+    clone.setAttribute('viewBox', `0 0 ${view.width} ${view.height}`);
+    clone.setAttribute('style', `font-family:${FONT};background:#eef2ee`);
+    $$('.dim,.hl,.selected,.search-hit,.search-miss,.flash', clone).forEach((node) => {
+      node.classList.remove('dim', 'hl', 'selected', 'search-hit', 'search-miss', 'flash');
+    });
+    const canvas = $('.canvas', clone);
+    if (canvas) canvas.removeAttribute('transform');
+    const background = document.createElementNS(NS, 'rect');
+    background.setAttribute('width', view.width);
+    background.setAttribute('height', view.height);
+    background.setAttribute('fill', '#eef2ee');
+    if (canvas) clone.insertBefore(background, canvas);
+    else clone.appendChild(background);
+
+    const xml = new XMLSerializer().serializeToString(clone);
+    const blob = new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n' + xml], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `net-source-${view.id}-architecture.svg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast('已导出当前视图 SVG');
+  }
+
+  init();
+})();
+
+</script>
+</body>
+</html>
