@@ -1,0 +1,18 @@
+spring:
+  datasource:
+    url: jdbc:h2:file:/app/data/fixedsource;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: false
+
+app:
+  upload-dir: /app/uploads
+  mock-source-base: http://127.0.0.1:8080/mock-source/v1
+  data-hub:
+    source-base: http://127.0.0.1:8080
+    receiver-base: http://127.0.0.1:8080
+    open-key: national-open-demo-key
+    bootstrap: true

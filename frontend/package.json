@@ -1,0 +1,28 @@
+{
+  "name": "fixed-source-platform-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "test:e2e": "node e2e-tests.mjs",
+    "test:e2e:split": "node split-merge-test.mjs",
+    "test:datahub": "node data-hub-test.mjs",
+    "test:visual": "node visual-audit.mjs"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.7.4",
+    "echarts": "^5.5.1",
+    "element-plus": "^2.8.1",
+    "vue": "^3.4.38",
+    "vue-router": "^4.4.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.2",
+    "playwright": "^1.64.1",
+    "vite": "^5.4.2"
+  }
+}

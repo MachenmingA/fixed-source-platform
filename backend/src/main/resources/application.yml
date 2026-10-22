@@ -1,0 +1,39 @@
+server:
+  port: 8080
+  error:
+    include-message: always
+
+spring:
+  application:
+    name: fixed-source-platform
+  datasource:
+    url: jdbc:h2:file:./data/fixedsource;MODE=MySQL;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+  jackson:
+    time-zone: Asia/Shanghai
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  upload-dir: ./uploads
+  mock-source-base: http://localhost:8080/mock-source/v1
+  data-hub:
+    source-base: http://localhost:8080
+    receiver-base: http://localhost:8080
+    open-key: national-open-demo-key
+    bootstrap: false
+
+logging:
+  level:
+    root: INFO
+    com.fixedsource: INFO

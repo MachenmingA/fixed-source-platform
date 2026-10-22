@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand_ink">#061A22</color>
+    <color name="brand_deep">#0A2832</color>
+    <color name="brand_panel">#0E3540</color>
+    <color name="brand_teal">#34D6C2</color>
+    <color name="brand_teal_dark">#0F9E90</color>
+    <color name="brand_teal_press">#0B8478</color>
+    <color name="teal_soft">#E4F6F2</color>
+    <color name="surface">#F2F6F7</color>
+    <color name="card">#FFFFFF</color>
+    <color name="text_primary">#102A33</color>
+    <color name="text_secondary">#5C727B</color>
+    <color name="text_muted">#8EA0A8</color>
+    <color name="line">#E1EAED</color>
+    <color name="line_dark">#1D4650</color>
+    <color name="danger">#D9534F</color>
+    <color name="danger_soft">#FCEBEA</color>
+    <color name="warning">#D9891B</color>
+    <color name="warning_soft">#FFF3DF</color>
+    <color name="success">#16866F</color>
+    <color name="success_soft">#E5F6F0</color>
+    <color name="info">#3578C4</color>
+    <color name="info_soft">#E9F1FB</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="white_70">#B3FFFFFF</color>
+    <color name="white_45">#73FFFFFF</color>
+    <color name="white_10">#1AFFFFFF</color>
+    <color name="teal_10">#1A34D6C2</color>
+    <color name="amber_soft">#FFF8E8</color>
+</resources>

@@ -1,0 +1,17 @@
+backend/target/
+backend/data/
+backend/uploads/
+frontend/node_modules/
+frontend/dist/
+frontend/ui-*.mjs
+*.log
+.idea/
+*.iml
+.DS_Store
+.env
+.env.*
+!.env.example
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
